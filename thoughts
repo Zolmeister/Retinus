@@ -1,0 +1,103 @@
+embedly api for getting page summaries
+feedmaster.js, spawned from app.js, which retrieves RSS feeds in the background
+
+flow:
+
+login
+
+import OPML -> parse feeds -> add feeds to user feeds object -> queue up
+
+site is made up of:
+
+left sidebar with subscriptions/folders
+main feed view
+
+
+fetch loop:
+    newStuff = {}
+    for each feed:
+        fetch feedurl
+        newestItemDate = feed.newestItemDate
+        for each feed item in fetched feed
+            if date newer than feed.newestItemDate
+                fetch summary
+                feed.push item
+                newStuff[feedId].push(item)
+                if item.date newer than newestItemDate
+                    newestItemDate = item.date
+        feed.newestItemDate = newestItemDate
+    for each user:
+        for each feed of the users (in or out of folder) which has feedId in newStuff:
+            unread.push newStuff[feedId]
+
+user adds a feed by url:
+    google feed api to find feed url
+    if feed exists for that feedurl:
+        add to list of feeds
+        add last 10 items to unread
+    else:
+        create new feed object
+        call update on that specific feed object (subset of feed loop)
+
+
+user reads an item:
+    remove it from their unread list
+
+view is sorted by timestamp of feedItems for the given folder
+
+
+ideas:
+    need to make the main view list generation efficient (currently looking up each feedItem for date to sort)
+    need to make pushes to unread more efficient (currently iterating over users and each of their feeds)
+
+db
+use cases:
+    get unread from folder
+    get unread from 1 feedId
+    get unread from main (consider special folder)
+        select from unread where filter = [folder,feedId,all]
+            sorted by date
+
+    display folders and feeds with names inside folders
+        return list of folders, which contain list of feedIds
+
+    add unread to unread list if subscribed to that feedId
+        get user where feedId in feeds
+
+    remove from unread list an item that had been read
+        pop from unread where itemId == itemId
+
+
+user:
+    email
+    pass
+    subscription: id
+    
+subscription
+    id
+    feeds: [ {name:name, feedId:feedId, folder: foldername} ]
+    unread: [
+        {
+            id: feeditemId,
+            feedId: feedId,
+            date: date
+        },
+        {
+        
+        }
+    ]
+
+feed:
+    id
+    feedurl
+    newestItemDate
+    items: [
+        feedItemId
+    ]
+
+feedItem:
+    id
+    date
+    title
+    summary
+    url
