@@ -1,2 +1,7 @@
 // Start sails and pass it command line arguments
-require('sails').lift(require('optimist').argv);
+require('sails').lift(require('optimist').argv)
+
+// Start feed consumer
+
+var cp = require('child_process')
+var feeder = cp.fork(__dirname + '/feeder.js')

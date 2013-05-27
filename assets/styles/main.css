@@ -1,0 +1,20 @@
+#sidebar {
+    float:left;
+    width: 200px;
+    background-color: green;
+    padding: 10px;
+}
+.feed {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.folder .feed {
+    margin-left: 10px;
+}
+.addFeed {
+    font-size: 20px;
+    font-weight: bold;
+    text-align: right;
+    margin-right: 10px;
+}

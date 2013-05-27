@@ -6,7 +6,11 @@
     "dependencies": {
         "sails": "0.8.91",
         "optimist": "~0.4.0",
-		"mongodb" :"*"
+	"mongodb" :"*",
+	"password-hash":"*",
+	"jsdom" :"*",
+	"q":"*",
+	"mongojs": "*"
     },
     "scripts": {
         "start": "node app.js",

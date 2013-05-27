@@ -1,0 +1,19 @@
+<script type='text/x-underscore-template' id='sidebarView'>
+    <div class='addFeed'>+</div>
+
+    <% _.each(folders, function(folder){%>
+        <% if (folder.name !== '__main__') {%>
+            <div class='folder'>
+                <span><%= folder.name %> (<%= folder.unread %>)</span>
+        <%}%>
+                <% _.each(folder.feeds, function(feed){%>
+                    <div class='feed'>
+                        <%= feed.name.replace('http://','').replace('https://','').replace('www.','') %>
+                        (<%= feed.unread %>)
+                    </div>
+                <%})%>
+        <% if (folder.name !== '__main__') {%>
+            </div>
+        <%}%>
+    <%})%>
+</script>
