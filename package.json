@@ -10,7 +10,9 @@
 	"password-hash":"*",
 	"jsdom" :"*",
 	"q":"*",
-	"mongojs": "*"
+	"mongojs": "*",
+	"request": "*",
+	"xml2js": "*"
     },
     "scripts": {
         "start": "node app.js",

@@ -1,8 +1,6 @@
 // #main
 Unread = Backbone.Model.extend()
 
-UnreadView = Backbone.View.extend()
-
 UnreadCollection = Backbone.Collection.extend({
     model: Unread,
     url: "/subscription/unread"
@@ -91,3 +89,9 @@ var sideBar = new FeedCollectionView({
 
 feeds.fetch()
 sideBar.render()
+
+var unread = new UnreadCollection()
+var main = new UnreadCollectionView({
+     model: unread,
+    el: $('#main')
+ }
