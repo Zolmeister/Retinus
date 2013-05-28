@@ -5,7 +5,7 @@ console.log('feeder starting')
 var request = require('request')
 var xml2js = require('xml2js')
 var databaseUrl = "retinus"; // "username:password@example.com/mydb"
-var collections = ["feed", "feedItem", "subscription"]
+var collections = ["feed", "feeditem", "subscription"]
 var db = require("mongojs")(databaseUrl, collections);
 var ObjectId = require('mongodb').BSONPure.ObjectID
 
@@ -32,7 +32,7 @@ function updateAll() {
                 try {
                     item.summary = JSON.parse(embed).description
                     asyncLeft += 1
-                    db.feedItem.insert(item, function (err, item) {
+                    db.feeditem.insert(item, function (err, item) {
                         done()
                         if (err) return console.log('error inserting feed item')
                         item = item[0]
@@ -163,10 +163,9 @@ function updateAll() {
             })
         })
     })
-    setTimeout(this, interval)
 }
 updateAll()
-setTimeout(updateAll, interval)
+setInterval(updateAll, interval)
 
 function getLink(link, description) {
     if (link.indexOf('reddit.com') !== -1) {

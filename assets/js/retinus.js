@@ -1,12 +1,47 @@
 // #main
+
 Unread = Backbone.Model.extend()
 
 UnreadCollection = Backbone.Collection.extend({
     model: Unread,
-    url: "/subscription/unread"
+    url: "/subscription/unread",
+    preload: function () {
+        this.load(2)
+    },
+    load: function (count) {
+        console.log('loading', count, range(Math.min(count, this.models.length)))
+        range(Math.min(count, this.models.length)).forEach(function(i) {
+            var model = this.models.g(-(i+1))
+            model.set('loading', true)
+            $.getJSON('/feeditem/' + model.get('feedItemId'), function (res) {
+                console.log(res)
+                for(var key in res){
+                    model.set(key, res[key])
+                }
+                model.set('loading', false)
+                console.log('triggering update')
+                this.trigger('updated')
+            }.bind(this))
+        }.bind(this))
+    }
 })
 
-UnreadCollectionView = Backbone.View.extend()
+UnreadCollectionView = Backbone.View.extend({
+    template: _.template($('#mainView').html()),
+
+    initialize: function () {
+        this.model.bind("add updated", this.render, this)
+    },
+
+    render: function () {
+        console.log('rendering')
+        var rend = {
+            items: this.model.toJSON()
+        }
+        $(this.el).html(this.template(rend))
+        return this
+    }
+})
 
 
 
@@ -37,15 +72,13 @@ FeedCollectionView = Backbone.View.extend({
         //todo: make this a view and use events
         var url = prompt('feed url:')
         var folder = prompt('folder name (optional)')
-        if(!url)
-            return
+        if (!url) return
         var self = this
-        var req= {}
+        var req = {}
         req.feedurl = url
-        if(folder)
-            req.folder = folder
-        $.post('/subscription/subscribe', req, function(){
-            self.model.fetch()  
+        if (folder) req.folder = folder
+        $.post('/subscription/subscribe', req, function () {
+            self.model.fetch()
         })
     },
 
@@ -67,8 +100,8 @@ FeedCollectionView = Backbone.View.extend({
             }
         }
         for (var folder in folders) {
-            folders[folder].unread = folders[folder].feeds.reduce(function(f1, f2){
-                return f1.unread+f2.unread
+            folders[folder].unread = folders[folder].feeds.reduce(function (f1, f2) {
+                return f1.unread + f2.unread
             })
             rend.folders.push(folders[folder])
         }
@@ -91,7 +124,12 @@ feeds.fetch()
 sideBar.render()
 
 var unread = new UnreadCollection()
-var main = new UnreadCollectionView({
-     model: unread,
+var mainView = new UnreadCollectionView({
+    model: unread,
     el: $('#main')
- }
+})
+unread.fetch({
+    success: function () {
+        unread.preload()
+    }
+})
