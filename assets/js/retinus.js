@@ -113,7 +113,40 @@ FeedCollectionView = Backbone.View.extend({
     }
 })
 
+LoginView = Backbone.View.extend({
+    template:  _.template($('#loginView').html()),
+    render: function(){
+        $(this.el).html(this.template({}))
+    }
+})
 
+var AppRouter = Backbone.Router.extend({
+    routes: {
+        "": "home",
+        "login": "login"
+    },
+    home:function(){
+        console.log("homee")
+        if(typeof Authed!== "undefined" && !Authed){
+            return retinusRoute.navigate("/login",true)
+        }
+    },
+    login: function(){
+        console.log("login")
+        var loginView = new LoginView({
+             el: $('#login')
+         })
+        loginView.render()
+    }
+})
+
+
+var retinusRoute = new AppRouter()
+Backbone.history.start()
+
+
+
+/*
 var feeds = new FeedCollection()
 var sideBar = new FeedCollectionView({
     model: feeds,
@@ -132,4 +165,4 @@ unread.fetch({
     success: function () {
         unread.preload()
     }
-})
+})*/

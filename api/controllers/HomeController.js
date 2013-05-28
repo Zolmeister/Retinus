@@ -5,9 +5,9 @@
 var HomeController = {
 
     index: function(req, res){
-        if(!req.session.authenticated)
-            return res.redirect('/login')
-        return res.render('home')
+        return res.render('home', {
+            authed: req.session.authenticated ? true : false
+        })
     }
 
 };

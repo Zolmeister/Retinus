@@ -6,12 +6,17 @@ var passwordHash = require('password-hash')
 var AuthController = {
 
     signup: function (req, res) {
-        var email = req.param('email');
-        var pass = req.param('pass');
+        var email = req.param('email')
+        var pass = req.param('pass')
+        var pass2 = req.param('pass2')
 
         if (!email || !pass) {
             return res.json({
                 err: 'email or password not specified'
+            })
+        } else if (pass!==pass2){
+            return res.json({
+                err: 'passwords do not match'
             })
         } else {
             User.find({
