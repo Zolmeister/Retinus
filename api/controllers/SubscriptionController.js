@@ -134,10 +134,19 @@ function getRSSfromUrl(url, callback) {
             if(errors)
                 return callback(errors)
             var $ = window.$
+            //search for rss link in html
             var discovery = $('link[type=application\\\/rss\\\+xml]')[0]
-            if(!discovery || !discovery.href)
-                return callback('could not find rss feed url')
-            callback(null, discovery.href)
+            if(!discovery || !discovery.href){
+                //check if we were given an rss feed to begin with
+                if($('rss')){
+                    return callback(null, url)
+                }
+                else {
+                    return callback('could not find rss feed url')
+                }
+            } else{
+                return callback(null, discovery.href)
+            }
         }
     })
 }

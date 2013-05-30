@@ -10,12 +10,12 @@ UnreadCollection = Backbone.Collection.extend({
     },
     load: function (count) {
         console.log('loading', count, range(Math.min(count, this.models.length)))
-        range(Math.min(count, this.models.length)).forEach(function(i) {
-            var model = this.models.g(-(i+1))
+        range(Math.min(count, this.models.length)).forEach(function (i) {
+            var model = this.models.g(-(i + 1))
             model.set('loading', true)
             $.getJSON('/feeditem/' + model.get('feedItemId'), function (res) {
                 console.log(res)
-                for(var key in res){
+                for (var key in res) {
                     model.set(key, res[key])
                 }
                 model.set('loading', false)
@@ -114,8 +114,8 @@ FeedCollectionView = Backbone.View.extend({
 })
 
 LoginView = Backbone.View.extend({
-    template:  _.template($('#loginView').html()),
-    render: function(){
+    template: _.template($('#loginView').html()),
+    render: function () {
         $(this.el).html(this.template({}))
     }
 })
@@ -125,17 +125,37 @@ var AppRouter = Backbone.Router.extend({
         "": "home",
         "login": "login"
     },
-    home:function(){
+    home: function () {
         console.log("homee")
-        if(typeof Authed!== "undefined" && !Authed){
-            return retinusRoute.navigate("/login",true)
+        if (typeof Authed !== "undefined" && !Authed) {
+            return retinusRoute.navigate("/login", true)
         }
+        this.feeds = new FeedCollection()
+        this.sideBar = new FeedCollectionView({
+            model: this.feeds,
+            el: $('#sidebar')
+        })
+        this.feeds.fetch({
+            success: function () {
+                this.sidebar.render()
+            }
+        })
+        this.unread = new UnreadCollection()
+        this.mainView = new UnreadCollectionView({
+            model: this.unread,
+            el: $('#main')
+        })
+        this.unread.fetch({
+            success: function () {
+                this.unread.preload()
+            }.bind(this)
+        })
     },
-    login: function(){
+    login: function () {
         console.log("login")
         var loginView = new LoginView({
-             el: $('#login')
-         })
+            el: $('#login')
+        })
         loginView.render()
     }
 })
