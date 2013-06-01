@@ -40,7 +40,7 @@ var AuthController = {
                         req.session.authenticated = true
                         req.session.user = user
                         req.session.sub = user.subscription
-                        return res.json(sub)
+                        return res.json({success: true})
                     })
                 }).fail(function (e) {
                     return res.json({
