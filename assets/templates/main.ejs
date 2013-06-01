@@ -3,7 +3,7 @@
     <div class='reader'>
     <% _.each(items.reverse(), function(item){%>
         <% if (item.visible){ %>
-            <div class='unreadItem'>
+            <div class='unreadItem' data-id='<%= item.feedItemId %>'>
                 <% if (item.selected){ %>
                     (selected)
                 <%}%>

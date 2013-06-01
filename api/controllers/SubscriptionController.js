@@ -32,6 +32,35 @@ var SubscriptionController = {
             return res.json({})
         })
     },
+    markRead: function (req, res) {
+        console.log('read', req.param('feedItemId'))
+        try{
+            var feedItemId = new ObjectId(req.param('feedItemId'))
+        } catch(e){
+            return res.json({
+                    err: 'bad feedItemId'
+                })
+        }
+        var sub = req.session.sub
+        Subscription.update({
+            _id: sub
+        }, {
+            $pull: {
+                unread: {
+                    feedItemId: feedItemId
+                }
+            }
+        }, function (err, sub) {
+            if (err || !sub) {
+                return res.json({
+                    err: 'can\'t mark as read'
+                })
+            }
+            return res.json({
+                success: true
+            })
+        })
+    },
     subscribe: function (req, res) {
         console.log('subscribing')
         var websiteUrl = req.param('feedurl')
@@ -39,9 +68,11 @@ var SubscriptionController = {
             err: 'no feedurl specified'
         })
         getRSSfromUrl(websiteUrl, function (err, RSSurl) {
-            if(err){
-                console.log('error getting rss feed url')   
-                return res.json({err:err})
+            if (err) {
+                console.log('error getting rss feed url')
+                return res.json({
+                    err: err
+                })
             }
             var folder = req.param('folder', '__main__') || '__main__'
             //DEBUG: REMOVE TEST USER
@@ -131,43 +162,20 @@ function getRSSfromUrl(url, callback) {
         html: url,
         src: [jquery],
         done: function (errors, window) {
-            if(errors)
-                return callback(errors)
+            if (errors) return callback(errors)
             var $ = window.$
             //search for rss link in html
             var discovery = $('link[type=application\\\/rss\\\+xml]')[0]
-            if(!discovery || !discovery.href){
+            if (!discovery || !discovery.href) {
                 //check if we were given an rss feed to begin with
-                if($('rss')){
+                if ($('rss')) {
                     return callback(null, url)
-                }
-                else {
+                } else {
                     return callback('could not find rss feed url')
                 }
-            } else{
+            } else {
                 return callback(null, discovery.href)
             }
         }
     })
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

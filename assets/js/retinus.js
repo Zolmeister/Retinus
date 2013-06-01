@@ -48,6 +48,15 @@ UnreadCollection = Backbone.Collection.extend({
         this.trigger('filterUpdate')
     },
     select: function (node) {
+        //if given the nodes id, find the node
+        if(typeof node==='string'){
+            for(var i=0;i<this.models.length;i++){
+                if (this.models[i].get('feedItemId') === node){
+                    node = this.models[i]
+                    break
+                }
+            }
+        }
         //mark target node as selected, and mark as read
         //if going backwards, mark read items as visible
         if (this.selected && node && this.selected !== node) {
@@ -70,7 +79,7 @@ UnreadCollection = Backbone.Collection.extend({
             this.selected.set('selected', true)
             this.selected.set('visible', true)
             this.selected.set('read', true)
-            //TODO: mark as read
+            this.markRead(this.selected)
         }
 
         var visibleCount = 0
@@ -100,6 +109,11 @@ UnreadCollection = Backbone.Collection.extend({
             })
         }
     },
+    markRead: function(node){
+        $.post('/subscription/markRead', {feedItemId: node.get('feedItemId')}, function(res){
+            console.log('mark', res)  
+        })
+    },
     getNext: function () {
         var index = this.selected ? this.models.indexOf(this.selected) - 1 : this.models.length - 1
         return index !== -1 ? this.models[index] : undefined
@@ -124,7 +138,7 @@ UnreadCollection = Backbone.Collection.extend({
 UnreadCollectionView = Backbone.View.extend({
     template: _.template($('#mainView').html()),
     events: {
-        'keydown': 'keydown'
+        'click .unreadItem': 'selectUnread'
     },
     initialize: function () {
         //this.model.bind("add", this.update, this)
@@ -143,6 +157,11 @@ UnreadCollectionView = Backbone.View.extend({
     update: function () {
         console.log('applying filter')
         this.model.applyFilter()
+    },
+    selectUnread: function(ev){
+        var id = ev.target.parentElement.getAttribute('data-id')
+        this.model.select(id)
+        this.render()
     },
     keydown: function (ev) {
         if (ev.which === 74) { // J, go down to next item
