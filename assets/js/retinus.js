@@ -12,22 +12,32 @@ UnreadCollection = Backbone.Collection.extend({
 
         //how many to read before refilling
         this.postLoadCount = postLoadCount || 2
-        
+
         this.currentFilter = filter || function (unread) {
             return true
         }
+        vent.on('Unread:applyFilter', this.applyFilter.bind(this))
+
         this.selected = null
         _.bindAll(this, 'loopUnread')
     },
     applyFilter: function (filter) {
         console.log('filter')
+        if (filter && filter !== this.currentFilter) {
+            //when applying new filter, clear all visible
+            this.loopUnread(function (unread) {
+                //TODO: fix this hack
+                unread.set('loaded', false)
+                unread.set('visible', false)
+            })
+        }
         this.currentFilter = filter || this.currentFilter
         var unreads = this.models
         var currentCount = 0
         this.loopUnread(function (unread) {
             // decide whether to show item or not
-            if (currentCount < this.preloadCount && this.currentFilter(unread)) {
-                if (!unread.get('loaded')) {
+            if (this.currentFilter(unread)) {
+                if (!unread.get('loaded') && currentCount < this.preloadCount) {
                     //load feed item
                     $.getJSON('/feeditem/' + unread.get('feedItemId'), function (res) {
                         for (var key in res) {
@@ -49,9 +59,9 @@ UnreadCollection = Backbone.Collection.extend({
     },
     select: function (node) {
         //if given the nodes id, find the node
-        if(typeof node==='string'){
-            for(var i=0;i<this.models.length;i++){
-                if (this.models[i].get('feedItemId') === node){
+        if (typeof node === 'string') {
+            for (var i = 0; i < this.models.length; i++) {
+                if (this.models[i].get('feedItemId') === node) {
                     node = this.models[i]
                     break
                 }
@@ -71,7 +81,7 @@ UnreadCollection = Backbone.Collection.extend({
                 }
             }
             this.selected.set('selected', false)
-        } else if (!node){
+        } else if (!node) {
             this.selected = null
         }
         if (node) {
@@ -92,14 +102,14 @@ UnreadCollection = Backbone.Collection.extend({
                 fetchNew = false
             }
         })
-        
+
         //count visible, if its low load another item
         console.log('visible', visibleCount)
         if (visibleCount <= this.preloadCount - this.postLoadCount) {
             console.log('load more')
             this.applyFilter()
         }
-        
+
         // if all items have been read, fetch to check for new stuff
         if (fetchNew && !this.selected) {
             this.fetch({
@@ -109,9 +119,11 @@ UnreadCollection = Backbone.Collection.extend({
             })
         }
     },
-    markRead: function(node){
-        $.post('/subscription/markRead', {feedItemId: node.get('feedItemId')}, function(res){
-            console.log('mark', res)  
+    markRead: function (node) {
+        $.post('/subscription/markRead', {
+            feedItemId: node.get('feedItemId')
+        }, function (res) {
+            console.log('mark', res)
         })
     },
     getNext: function () {
@@ -136,9 +148,9 @@ UnreadCollection = Backbone.Collection.extend({
 
 // TODO: efficient add/remove, instead of reloading entire view
 UnreadCollectionView = Backbone.View.extend({
-    template: _.template($('#mainView').html()),
+    template: _.template($('#main-view').html()),
     events: {
-        'click .unreadItem': 'selectUnread'
+        'click .unread-item': 'selectUnread'
     },
     initialize: function () {
         //this.model.bind("add", this.update, this)
@@ -158,7 +170,7 @@ UnreadCollectionView = Backbone.View.extend({
         console.log('applying filter')
         this.model.applyFilter()
     },
-    selectUnread: function(ev){
+    selectUnread: function (ev) {
         var id = ev.target.parentElement.getAttribute('data-id')
         this.model.select(id)
         this.render()
@@ -196,10 +208,11 @@ FeedCollection = Backbone.Collection.extend({
 
 
 FeedCollectionView = Backbone.View.extend({
-    template: _.template($('#sidebarView').html()),
+    template: _.template($('#sidebar-view').html()),
 
     events: {
-        'click .addFeed': 'addFeed'
+        'click .add-feed': 'addFeed',
+        'click .feed, .folder-text, .all-items': 'filter'
     },
 
     initialize: function () {
@@ -219,6 +232,41 @@ FeedCollectionView = Backbone.View.extend({
         $.post('/subscription/subscribe', req, function () {
             self.model.fetch()
         })
+    },
+
+    filter: function (ev) {
+        var filter
+        var target = $(ev.target)
+        var type = target.attr('class')
+        if (type === 'feed') {
+            //filter by feed
+            var feedId = target.data('id')
+            filter = function (unread) {
+                if (unread.get('feedId') === feedId) {
+                    return true
+                }
+                return false
+            }
+        } else if (type === 'folder-text') {
+            //filter by folder
+            var folder = target.parent()
+            var feedIds = []
+            folder.children('.feed').each(function (i, feed) {
+                feedIds.push(feed.getAttribute('data-id'))
+            })
+            filter = function (unread) {
+                if (feedIds.indexOf(unread.get('feedId')) !== -1) {
+                    return true
+                }
+                return false
+            }
+
+        } else if (type === 'all-items') {
+            filter = function (unread) {
+                return true
+            }
+        }
+        vent.trigger('Unread:applyFilter', filter)
     },
 
     render: function () {
@@ -257,10 +305,10 @@ FeedCollectionView = Backbone.View.extend({
 })
 
 LoginView = Backbone.View.extend({
-    template: _.template($('#loginView').html()),
+    template: _.template($('#login-view').html()),
     events: {
-        'submit #loginForm': 'login',
-        'submit #signupForm': 'signup'
+        'submit #login-form': 'login',
+        'submit #signup-form': 'signup'
     },
     render: function () {
         $(this.el).html(this.template({}))
@@ -268,12 +316,12 @@ LoginView = Backbone.View.extend({
     login: function (ev) {
         ev.preventDefault()
         console.log('logging in')
-        $.post('/auth/login', $('#loginForm').serialize(), this.verifyLogin)
+        $.post('/auth/login', $('#login-form').serialize(), this.verifyLogin)
     },
     signup: function (ev) {
         ev.preventDefault()
         console.log('signing up')
-        $.post('/auth/signup', $('#signupForm').serialize(), this.verifyLogin)
+        $.post('/auth/signup', $('#signup-form').serialize(), this.verifyLogin)
     },
     verifyLogin: function (res) {
         console.log(res)
@@ -348,26 +396,3 @@ var AppRouter = Backbone.Router.extend({
 var vent = _.extend({}, Backbone.Events);
 var retinusRoute = new AppRouter(vent)
 Backbone.history.start()
-
-
-
-/*
-var feeds = new FeedCollection()
-var sideBar = new FeedCollectionView({
-    model: feeds,
-    el: $('#sidebar')
-})
-
-feeds.fetch()
-sideBar.render()
-
-var unread = new UnreadCollection()
-var mainView = new UnreadCollectionView({
-    model: unread,
-    el: $('#main')
-})
-unread.fetch({
-    success: function () {
-        unread.preload()
-    }
-})*/

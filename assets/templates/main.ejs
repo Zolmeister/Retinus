@@ -1,9 +1,9 @@
-<script type='text/x-underscore-template' id='mainView'>
+<script type='text/x-underscore-template' id='main-view'>
     feeds
     <div class='reader'>
     <% _.each(items.reverse(), function(item){%>
-        <% if (item.visible){ %>
-            <div class='unreadItem' data-id='<%= item.feedItemId %>'>
+        <% if (item.visible && item.filter){ %>
+            <div class='unread-item' data-id='<%= item.feedItemId %>'>
                 <% if (item.selected){ %>
                     (selected)
                 <%}%>
