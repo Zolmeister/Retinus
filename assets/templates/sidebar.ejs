@@ -1,18 +1,24 @@
 <script type='text/x-underscore-template' id='sidebar-view'>
-    <div class='add-feed'>+</div>
-    <div class='all-items'>All Items</div>
-    <% _.each(folders, function(folder){%>
-        <% if (folder.name !== '__main__') {%>
-            <div class='folder'>
-                <span class='folder-text' data-id='<%= folder.name %>'><%= folder.name %></span>
-        <%}%>
-                <% _.each(folder.feeds, function(feed){%>
-                    <div class='feed' data-id='<%= feed.feedId %>'>
-                        <%= feed.name.replace('http://','').replace('https://','').replace('www.','') %>
-                    </div>
-                <%})%>
-        <% if (folder.name !== '__main__') {%>
-            </div>
-        <%}%>
-    <%})%>
+<div class='divider'></div>
+    <% if (!minimized) { %>
+        <div class='minimize'>&lt;&lt;</div>
+        <div class='add-feed'>+</div>
+        <div class='import'>import</div>
+        <div class='edit'>edit</div>
+        <div class='all-items'>All Items</div>
+        <% _.each(folders, function(folder){%>
+            <% if (folder.name !== '__main__') {%>
+                <div class='folder'>
+                    <span class='folder-text' data-id='<%= folder.name %>'>-- <%= folder.name %> --</span>
+            <%}%>
+                    <% _.each(folder.feeds, function(feed){%>
+                        <div class='feed' data-id='<%= feed.feedId %>'>
+                            <%= feed.name.replace('http://','').replace('https://','').replace('www.','') %>
+                        </div>
+                    <%})%>
+            <% if (folder.name !== '__main__') {%>
+                </div>
+            <%}%>
+        <%})%>
+    <% } %>
 </script>

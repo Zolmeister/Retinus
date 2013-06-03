@@ -212,12 +212,15 @@ FeedCollectionView = Backbone.View.extend({
 
     events: {
         'click .add-feed': 'addFeed',
-        'click .feed, .folder-text, .all-items': 'filter'
+        'click .feed, .folder-text, .all-items': 'filter',
+        'click .minimize': 'minimize',
+        'click': 'maximize'
     },
 
     initialize: function () {
         this.model.bind("add", this.render, this)
         _.bindAll(this, 'addFeed')
+        this.minimized = false
     },
 
     addFeed: function (ev) {
@@ -232,6 +235,21 @@ FeedCollectionView = Backbone.View.extend({
         $.post('/subscription/subscribe', req, function () {
             self.model.fetch()
         })
+    },
+    minimize: function (ev) {
+        this.minimized = true
+        $(ev.target).parent().addClass('shrunk')
+        $('#main').addClass('biggen')
+        this.render()
+    },
+    maximize: function (ev) {
+        var target = $(ev.target)
+        if (target.hasClass('shrunk')) {
+            this.minimized = false
+            target.removeClass('shrunk')
+            $('#main').removeClass('biggen')
+            this.render()
+        }
     },
 
     filter: function (ev) {
@@ -271,7 +289,8 @@ FeedCollectionView = Backbone.View.extend({
 
     render: function () {
         var rend = {
-            folders: []
+            folders: [],
+            minimized: this.minimized
         }
         var folders = {}
         var feeds = this.model.models
