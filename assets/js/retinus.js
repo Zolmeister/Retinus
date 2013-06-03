@@ -358,7 +358,8 @@ LoginView = Backbone.View.extend({
 var AppRouter = Backbone.Router.extend({
     routes: {
         "": "home",
-        "login": "login"
+        "login": "login",
+        "logout": "logout"
     },
     initialize: function (vent) {
         vent.on('Login:logged in', function () {
@@ -378,19 +379,24 @@ var AppRouter = Backbone.Router.extend({
     },
     home: function () {
         var self = this
-        console.log("homee")
+        //TODO: fix this hack
+        $('.logout').show()
         if (typeof Authed !== "undefined" && !Authed) {
-            return this.navigate("/login", true)
+            return this.navigate("login", true)
         }
         var feeds = new FeedCollection()
+        var $el =  $('<div id="sidebar">')
+        $('body').append($el)
         var sideBar = new FeedCollectionView({
             model: feeds,
-            el: $('#sidebar')
+            el: $el
         })
         var unread = new UnreadCollection()
+        $el = $('<div id="main">')
+        $('body').append($el)
         var mainView = new UnreadCollectionView({
             model: unread,
-            el: $('#main')
+            el: $el
         })
         unread.fetch({
             success: function () {
@@ -404,11 +410,20 @@ var AppRouter = Backbone.Router.extend({
         })
     },
     login: function () {
-        console.log("login")
+        //TODO: fix this hack
+        $('.logout').hide()
+        var $el =  $('<div id="login">')
+        $('body').append($el)
         var loginView = new LoginView({
-            el: $('#login')
+            el: $el
         })
         this.showViews(loginView)
+    },
+    logout: function(){
+        $.get('/auth/logout', function(res){
+            Authed = false
+            this.navigate('login',true)
+        }.bind(this))
     }
 })
 

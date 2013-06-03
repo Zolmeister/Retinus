@@ -1,16 +1,41 @@
 <script type='text/x-underscore-template' id='login-view'>
-    <form id='login-form'>
-    login:<br>
-    email: <input name='email'>
-    password: <input name='pass' type='password'>
-    <input type='submit'>
-    </form>
-    
-    <form id='signup-form'>
-    signup<br>
-    email: <input name='email'>
-    password: <input name='pass' type='password'>
-    confirm: <input name='pass2' type='password'>
-    <input type='submit'>
-    </form>
+<form class="pure-form pure-form-aligned" id='login-form'>
+    <h1>Login</h1>
+    <fieldset>
+        <div class="pure-control-group">
+            <label for="email">Email Address</label>
+            <input name="email" type="email" placeholder="Email Address">
+        </div>
+        <div class="pure-control-group">
+            <label for="pass">Password</label>
+            <input name="pass" type="password" placeholder="Password">
+        </div>
+ 
+        <div class="pure-controls">
+            <button type="submit" class="pure-button">Submit</button>
+        </div>
+    </fieldset>
+</form>
+
+<form class="pure-form pure-form-aligned" id='signup-form'>
+    <h1>Signup</h1>
+    <fieldset>
+        <div class="pure-control-group">
+            <label for="email">Email Address</label>
+            <input name="email" type="email" placeholder="Email Address">
+        </div>
+        <div class="pure-control-group">
+            <label for="pass">Password</label>
+            <input name="pass" type="password" placeholder="Password">
+        </div>
+        <div class="pure-control-group">
+            <label for="pass2">Confirm Password</label>
+            <input name="pass2" type="password" placeholder="Password Again">
+        </div>
+ 
+        <div class="pure-controls">
+            <button type="submit" class="pure-button">Submit</button>
+        </div>
+    </fieldset>
+</form>
 </script>
