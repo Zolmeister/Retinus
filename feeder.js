@@ -14,6 +14,7 @@ var embedUrl = 'http://api.embed.ly/1/oembed?key=' + embedKey
 
 var interval = 1000 * 60 * 20; //20 mins
 
+//TODO: use promises
 function updateAll() {
     var newStuff = {}
     var newDates = {}
@@ -101,8 +102,6 @@ function updateAll() {
         }
     }
 
-
-
     function done() {
         process.nextTick(function () {
             asyncLeft -= 1
@@ -126,6 +125,7 @@ function updateAll() {
                             var newestItemDate = feed.newestDate
                             var items = channel.item
                             items.reverse().forEach(function (item) {
+                                console.log(item)
                                 var title = item.title[0]
                                 var date = new Date(item.pubDate[0])
                                 var link = getLink(item.link[0], item.desciption)

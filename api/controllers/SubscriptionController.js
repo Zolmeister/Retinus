@@ -34,12 +34,12 @@ var SubscriptionController = {
     },
     markRead: function (req, res) {
         console.log('read', req.param('feedItemId'))
-        try{
+        try {
             var feedItemId = new ObjectId(req.param('feedItemId'))
-        } catch(e){
+        } catch (e) {
             return res.json({
-                    err: 'bad feedItemId'
-                })
+                err: 'bad feedItemId'
+            })
         }
         var sub = req.session.sub
         Subscription.update({
@@ -61,6 +61,38 @@ var SubscriptionController = {
             })
         })
     },
+    unsub: function (req, res) {
+        console.log('unsub', req.param('feedId'))
+        try {
+            var feedId = new ObjectId(req.param('feedId'))
+        } catch (e) {
+            return res.json({
+                err: 'bad feedId'
+            })
+        }
+        var sub = req.session.sub
+        Subscription.update({
+            _id: sub
+        }, {
+            $pull: {
+                feeds: {
+                    feedId: feedId
+                },
+                unread: {
+                    feedId: feedId
+                }
+            }
+        }, function (err, sub) {
+            if (err || !sub) {
+                return res.json({
+                    err: 'can\'t remove feed'
+                })
+            }
+            return res.json({
+                success: true
+            })
+        })
+    },
     subscribe: function (req, res) {
         console.log('subscribing')
         var websiteUrl = req.param('feedurl')
@@ -75,7 +107,6 @@ var SubscriptionController = {
                 })
             }
             var folder = req.param('folder', '__main__') || '__main__'
-            //DEBUG: REMOVE TEST USER
             console.log('session user', req.session.user)
             var userId = req.session.user && req.session.user.id
             var feedId

@@ -22,13 +22,15 @@ a {
 /* top */
 .logo {
     display: inline-block;
-    height: 50px;
+    width: 122px;
+    height: 48px;
+    background-image: url('/images/retinus.png');
 }
 .logout {
     float: right;
 }
 .header {
-    padding: 20px 30px;
+    padding: 15px 20px;
 }
 
 /* left */
@@ -38,9 +40,9 @@ a {
     position: fixed;
     z-index: 999;
     height: 100%;
-    height: calc(100% - 90px);
-    height: -webkit-calc(100% - 90px);
-    height: -moz-calc(100% - 90px);
+    height: calc(100% - 82px);
+    height: -webkit-calc(100% - 82px);
+    height: -moz-calc(100% - 82px);
     overflow: hidden;
 }
 #sidebar::-webkit-scrollbar {
@@ -57,6 +59,7 @@ a {
 }
 #sidebar > div {
     padding:0px 10px;
+    cursor: pointer;
 }
 .feed {
     overflow: hidden;
@@ -64,7 +67,10 @@ a {
     text-overflow: ellipsis;
 }
 .folder .feed {
-    margin-left: 10px;
+    margin-left: 20px;
+}
+.folder, .feed {
+    margin: 3px;
 }
 .add-feed, .minimize, .maximize {
     font-size: 28px;
@@ -83,6 +89,20 @@ a {
 }
 .all-items {
     margin: 20px;
+}
+.delete {
+    width: 20px;
+    height: 6px;
+    padding: 2px;
+    margin-top: 4px;
+    background: rgba(255,100,100,.5);
+    float: left;
+    margin-right: 10px;
+    right: 0px;
+    border-radius: 2px;
+}
+.delete:hover {
+    background: rgba(255,100,100,.7);
 }
 
 /* main */
@@ -162,4 +182,20 @@ a {
 }
 #login label {
     color: #ccc;
+}
+
+/* errors */
+.errors {
+    position: absolute;
+    width: 400px;
+    top: 0px;
+    left: 50%;
+    margin-left: -200px;
+}
+.error {
+    text-align: center;
+    background: rgba(255,100,100,.5);
+    padding: 10px;
+    margin: 10px;
+    border-radius: 5px;
 }

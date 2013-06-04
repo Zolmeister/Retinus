@@ -5,17 +5,32 @@
 */
 module.exports.policies = {
 
-	// Default policy (allow public access)
-	'*': true
-
-	/** Example mapping: 
-	someController: {
-
-		// Apply the "authenticated" policy to all actions
-		'*': 'authenticated',
-
-		// For someAction, apply 'somePolicy' instead
-		someAction: 'somePolicy'
-	}
-	*/
+	AuthController: {
+        '*': false,
+        signup: true,
+        login: true,
+        logout: true
+    },
+    FeedController: {
+        '*': false,
+    },
+    FeedItemController: {
+        '*': false,
+        show: true
+    },
+    HomeController: {
+        '*': false,
+        index: true
+    },
+    SubscriptionController: {
+        '*': false,
+        feeds: true,
+        unread: true,
+        markRead: true,
+        subscribe: true,
+        unsub: true
+    },
+    UserController: {
+        '*': false
+    }
 };

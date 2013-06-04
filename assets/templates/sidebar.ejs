@@ -4,15 +4,21 @@
         <div class='minimize'>&lt;&lt;</div>
         <div class='add-feed'>+</div>
         <div class='import'>import</div>
-        <div class='edit'>edit</div>
+        <div class='edit'><% if (!editing) { %>edit<% } else { %>done <% } %></div>
         <div class='all-items'>All Items</div>
         <% _.each(folders, function(folder){%>
-            <% if (folder.name !== '__main__') {%>
-                <div class='folder'>
+            <% if (folder.name !== '__main__') { %>
+                <div class='folder' >
+                <% if (editing) { %>
+                    <div class='delete' data-id='<%= folder.name %>' data-type='folder'></div>
+                <% } %>
                     <span class='folder-text' data-id='<%= folder.name %>'>-- <%= folder.name %> --</span>
             <%}%>
                     <% _.each(folder.feeds, function(feed){%>
                         <div class='feed' data-id='<%= feed.feedId %>'>
+                            <% if (editing) { %>
+                                <div class='delete' data-id='<%= feed.feedId %>' data-type='feed'></div>
+                            <% } %>
                             <%= feed.name.replace('http://','').replace('https://','').replace('www.','') %>
                         </div>
                     <%})%>
