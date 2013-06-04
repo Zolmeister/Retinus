@@ -17,7 +17,7 @@ UnreadCollection = Backbone.Collection.extend({
             return true
         }
         vent.on('Unread:applyFilter', this.applyFilter.bind(this))
-
+        vent.on('Unread:reload', this.reload.bind(this))
         this.selected = null
         _.bindAll(this, 'loopUnread')
     },
@@ -115,11 +115,7 @@ UnreadCollection = Backbone.Collection.extend({
 
         // if all items have been read, fetch to check for new stuff
         if (fetchNew && !this.selected) {
-            this.fetch({
-                success: function () {
-                    vent.trigger('Unread:update')
-                }
-            })
+            this.reload()
         }
     },
     markRead: function (node) {
@@ -142,6 +138,13 @@ UnreadCollection = Backbone.Collection.extend({
             return undefined
         }
         return this.models[index]
+    },
+    reload: function(){
+        this.fetch({
+            success: function(){
+                vent.trigger('Unread:update')
+            }
+        })
     },
     loopUnread: function (fn) {
         var unreads = this.models

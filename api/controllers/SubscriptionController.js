@@ -99,6 +99,9 @@ var SubscriptionController = {
         if (!websiteUrl) return res.json({
             err: 'no feedurl specified'
         })
+        if(websiteUrl.indexOf('http') === -1){
+            websiteUrl = 'http://' + websiteUrl
+        }
         getRSSfromUrl(websiteUrl, function (err, RSSurl) {
             if (err) {
                 console.log('error getting rss feed url')
@@ -166,8 +169,6 @@ var SubscriptionController = {
                     folder: folder
                 })
 
-                //console.log(sub.save())
-                //sub.save()
                 Subscription.update({
                     _id: sub.values.id
                 }, sub.values, function (e) {

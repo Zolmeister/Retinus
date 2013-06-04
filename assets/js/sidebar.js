@@ -82,6 +82,7 @@ FeedCollectionView = Backbone.View.extend({
                 if (res.err) {
                     return vent.trigger('Error:err', res.err)
                 }
+                vent.trigger('Unread:reload')
                 this.reload()
             }.bind(this))
         } else if (type === 'folder') {
@@ -94,6 +95,7 @@ FeedCollectionView = Backbone.View.extend({
 
             var check = function () {
                 if (currentCount === feedIds.length) {
+                    vent.trigger('Unread:reload')
                     this.reload()
                 }
             }.bind(this)
