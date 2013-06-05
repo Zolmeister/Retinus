@@ -19,7 +19,9 @@
                             <% if (editing) { %>
                                 <div class='delete' data-id='<%= feed.feedId %>' data-type='feed'></div>
                             <% } %>
+                            <span title='<%= feed.name %>'>
                             <%= feed.name.replace('http://','').replace('https://','').replace('www.','') %>
+                            </span>
                         </div>
                     <%})%>
             <% if (folder.name !== '__main__') {%>

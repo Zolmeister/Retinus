@@ -6,6 +6,8 @@ var ObjectId = require('mongodb').BSONPure.ObjectID
 var jsdom = require('jsdom');
 var fs = require('fs');
 var jquery = fs.readFileSync("./jquery.js").toString();
+var feedutil = require('../../feedutil')
+var request = require('request')
 
 var SubscriptionController = {
     index: function (req, res) {
@@ -96,29 +98,21 @@ var SubscriptionController = {
     subscribe: function (req, res) {
         console.log('subscribing')
         var websiteUrl = req.param('feedurl')
+        var folder = req.param('folder', '__main__') || '__main__'
+        var userId = req.session.user && req.session.user.id
+        var subId = req.session.sub
+        
         if (!websiteUrl) return res.json({
             err: 'no feedurl specified'
         })
-        if(websiteUrl.indexOf('http') === -1){
-            websiteUrl = 'http://' + websiteUrl
-        }
-        getRSSfromUrl(websiteUrl, function (err, RSSurl) {
-            if (err) {
-                console.log('error getting rss feed url')
-                return res.json({
-                    err: err
-                })
-            }
-            var folder = req.param('folder', '__main__') || '__main__'
-            console.log('session user', req.session.user)
-            var userId = req.session.user && req.session.user.id
-            var feedId
-            console.log('userId', userId)
-            console.log('feedurl', RSSurl)
 
-            //get the feed that corresponds to the feedurl
+        feedutil.getFeedUrl(websiteUrl).then(function (RSSurl) {
+            //make sure we have a valid rss feed
+            return feedutil.checkUrl(RSSurl)
+        }).then(function(RSSurl){
+            //if feed exists, use that, otherwise create a new feed
             //TODO: add last 10 items from feed to users unread
-            Feed.find({
+            return Feed.find({
                 feedurl: RSSurl
             }).then(function (feed) {
                 //feed exists, no need to create
@@ -129,85 +123,50 @@ var SubscriptionController = {
                 //this should probably trigger a push to client through socket.io
                 var feed = {
                     feedurl: RSSurl,
-                    newestDate: -1,
                     items: []
                 }
-
-                return Feed.create(feed).then(function (feed) {
-                    feedId = feed.id
-                    return feed
-                })
-            }).then(function (feed) {
-                //subscribe user to the feed
-                return User.find({
-                    _id: new ObjectId(userId)
-                }).then(function (r) {
-                    console.log('got user')
-                    return r
-                })
-            }).then(function (user) {
-                return Subscription.find({
-                    _id: user.subscription
-                }).then(function (sub) {
-                    console.log('got sub')
-                    return sub
-                })
-            }).then(function (sub) {
-                if (!sub) console.log('error finding user subscription')
-                var alreadyHas = sub.feeds.filter(function (innerfeed) {
-                    if (feedId.toString() === innerfeed.feedId.toString()) return true
-                })
-                if (alreadyHas.length > 0) {
-                    console.log('aready subscribed to that feed')
-                    return res.json(sub)
-                }
-
-                console.log('subscibing to new feed')
-                sub.values.feeds.push({
-                    name: websiteUrl,
-                    feedId: feedId,
-                    folder: folder
-                })
-
-                Subscription.update({
-                    _id: sub.values.id
-                }, sub.values, function (e) {
-                    if (e) console.log('error updating subscription')
-                    res.json(sub)
-                })
-
-            }).fail(function (e) {
-                console.log(e)
-                res.json({
-                    err: true
-                })
+                return Feed.create(feed)
             })
 
-        })
-    }
+        }).then(function (feed) {
+            //get user subscription object
+            return Subscription.find({
+                _id: subId
+            }).then(function (sub) {
+                console.log('got sub')
+                return [feed, sub]
+            })
+        }).spread(function (feed, sub) {
+            if (!sub) console.log('error finding user subscription')
+            var alreadyHas = sub.feeds.filter(function (innerfeed) {
+                if (feed.id.toString() === innerfeed.feedId.toString()) return true
+            })
+            if (alreadyHas.length > 0) {
+                console.log('aready subscribed to that feed')
+                return res.json(sub)
+            }
 
+            console.log('subscibing to new feed')
+            sub.values.feeds.push({
+                name: websiteUrl,
+                feedId: feed.id,
+                folder: folder
+            })
+            //write changes to subscriptions
+            Subscription.update({
+                _id: sub.values.id
+            }, sub.values, function (e) {
+                if (e) console.log('error updating subscription')
+                return res.json(sub)
+            })
+            
+        }).fail(function (e) {
+            console.log('error subscribing to rss url', e)
+            return res.json({
+                err: err
+            })
+        })
+
+    }
 };
 module.exports = SubscriptionController;
-
-function getRSSfromUrl(url, callback) {
-    jsdom.env({
-        html: url,
-        src: [jquery],
-        done: function (errors, window) {
-            if (errors) return callback(errors)
-            var $ = window.$
-            //search for rss link in html
-            var discovery = $('link[type=application\\\/rss\\\+xml]')[0]
-            if (!discovery || !discovery.href) {
-                //check if we were given an rss feed to begin with
-                if ($('rss')) {
-                    return callback(null, url)
-                } else {
-                    return callback('could not find rss feed url')
-                }
-            } else {
-                return callback(null, discovery.href)
-            }
-        }
-    })
-}

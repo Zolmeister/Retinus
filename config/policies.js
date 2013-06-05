@@ -9,14 +9,14 @@ module.exports.policies = {
         '*': false,
         signup: true,
         login: true,
-        logout: true
+        logout: 'authenticated'
     },
     FeedController: {
         '*': false,
     },
     FeedItemController: {
         '*': false,
-        show: true
+        show: 'authenticated'
     },
     HomeController: {
         '*': false,
@@ -24,11 +24,11 @@ module.exports.policies = {
     },
     SubscriptionController: {
         '*': false,
-        feeds: true,
-        unread: true,
-        markRead: true,
-        subscribe: true,
-        unsub: true
+        feeds: 'authenticated',
+        unread: 'authenticated',
+        markRead: 'authenticated',
+        subscribe: 'authenticated',
+        unsub: 'authenticated'
     },
     UserController: {
         '*': false
