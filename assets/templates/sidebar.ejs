@@ -15,13 +15,11 @@
                     <span class='folder-text' data-id='<%= folder.name %>'>-- <%= folder.name %> --</span>
             <%}%>
                     <% _.each(folder.feeds, function(feed){%>
-                        <div class='feed' data-id='<%= feed.feedId %>'>
+                        <div class='feed' data-id='<%= feed.feedId %>' title='<%= feed.name %>'>
                             <% if (editing) { %>
                                 <div class='delete' data-id='<%= feed.feedId %>' data-type='feed'></div>
                             <% } %>
-                            <span title='<%= feed.name %>'>
                             <%= feed.name.replace('http://','').replace('https://','').replace('www.','').replace('feeds.feedburner.com/','') %>
-                            </span>
                         </div>
                     <%})%>
             <% if (folder.name !== '__main__') {%>

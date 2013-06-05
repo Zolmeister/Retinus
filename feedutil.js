@@ -73,18 +73,17 @@ function extractFeedContent(url) {
                 items.push(comp)
             })
         } else if (type === 'atom') {
-            var items = result.feed.entry
-            items.reverse().forEach(function (item) {
+            var entries = result.feed.entry
+            entries.reverse().forEach(function (item) {
                 var title = item.title
-                var description = items.content
-                var link = getLink(item.link.$href, description)
+                var description = item.content
+                var link = item.link.href
                 if (!title || !link) return
                 var comp = {
                     title: title,
                     link: link,
                     description: description
                 }
-
                 items.push(comp)
             })
         }

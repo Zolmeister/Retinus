@@ -37,7 +37,6 @@ function updateFeed(feed) {
         })
 
         feedutil.extractFeedContent(feed.feedurl).then(function (items) {
-            console.log(items)
             //start with the oldest result (last one)
             items.reverse().forEach(function (item) {
                 if (titles.indexOf(item.title) === -1) {

@@ -22,6 +22,7 @@ UnreadCollection = Backbone.Collection.extend({
         _.bindAll(this, 'loopUnread')
     },
     applyFilter: function (filter) {
+        var self = this
         console.log('filter')
         if (filter && filter !== this.currentFilter) {
             //when applying new filter, clear all visible
@@ -39,17 +40,19 @@ UnreadCollection = Backbone.Collection.extend({
             if (this.currentFilter(unread)) {
                 if (!unread.get('loaded') && currentCount < this.preloadCount) {
                     //load feed item
-                    $.getJSON('/feeditem/' + unread.get('feedItemId'), function (res) {
-                        if(res.err){
-                            return vent.trigger('Error:err', res.err)
+                    $.getJSON('/feeditem/' + unread.get('feedItemId'), (function (unread) {
+                        return function (res) {
+                            if (res.err) {
+                                return vent.trigger('Error:err', res.err)
+                            }
+                            for (var key in res) {
+                                unread.set(key, res[key])
+                            }
+                            unread.set('loaded', true)
+                            unread.set('visible', true)
+                            self.trigger('filterUpdate')
                         }
-                        for (var key in res) {
-                            unread.set(key, res[key])
-                        }
-                        unread.set('loaded', true)
-                        unread.set('visible', true)
-                        this.trigger('filterUpdate')
-                    }.bind(this))
+                    })(unread))
                     currentCount++
                 }
                 unread.set('filter', true)
@@ -122,7 +125,7 @@ UnreadCollection = Backbone.Collection.extend({
         $.post('/subscription/markRead', {
             feedItemId: node.get('feedItemId')
         }, function (res) {
-            if(res.err){
+            if (res.err) {
                 return vent.trigger('Error:err', res.err)
             }
             console.log('mark', res)
@@ -139,9 +142,9 @@ UnreadCollection = Backbone.Collection.extend({
         }
         return this.models[index]
     },
-    reload: function(){
+    reload: function () {
         this.fetch({
-            success: function(){
+            success: function () {
                 vent.trigger('Unread:update')
             }
         })
@@ -202,4 +205,3 @@ UnreadCollectionView = Backbone.View.extend({
         this.model.unbind("add updated")
     }
 })
-
