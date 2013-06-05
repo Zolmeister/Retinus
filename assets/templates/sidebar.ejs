@@ -4,7 +4,7 @@
         <div class='minimize'>&lt;&lt;</div>
         <div class='add-feed'>+</div>
         <div class='import'>import</div>
-        <div class='edit'><% if (!editing) { %>edit<% } else { %>done <% } %></div>
+        <div class='edit'><% if (!editing) { %>edit<% } else { %>done<% } %></div>
         <div class='all-items'>All Items</div>
         <% _.each(folders, function(folder){%>
             <% if (folder.name !== '__main__') { %>
@@ -20,7 +20,7 @@
                                 <div class='delete' data-id='<%= feed.feedId %>' data-type='feed'></div>
                             <% } %>
                             <span title='<%= feed.name %>'>
-                            <%= feed.name.replace('http://','').replace('https://','').replace('www.','') %>
+                            <%= feed.name.replace('http://','').replace('https://','').replace('www.','').replace('feeds.feedburner.com/','') %>
                             </span>
                         </div>
                     <%})%>
