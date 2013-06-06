@@ -1,2 +1,2 @@
 # retinus
-### a Sails application
+###coming soon
