@@ -155,7 +155,7 @@ var SubscriptionController = {
             //add last 10 items from feed to users unread
             var last10 = feed.items.slice(feed.items.length - 10).map(function (item) {
                 return {
-                    feedItemId: item.feedId,
+                    feedItemId: item,
                     feedId: feed.id
                 }
             })
