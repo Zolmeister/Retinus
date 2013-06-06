@@ -32,6 +32,7 @@ function updateFeed(feed) {
             $in: itemIds
         }
     }, function (err, feedItems) {
+        if(err) return console.log('error updating feed', err)
         var titles = feedItems.map(function (item) {
             return item.title
         })
@@ -76,9 +77,9 @@ function processItemQueue() {
     }
 }
 
-function insertItem(feedId, item) {
-    db.feeditem.insert(item, function (err, item) {
-        if (err) return console.log('error inserting feed item', err)
+function insertItem(feedId, feeditem) {
+    db.feeditem.insert(feeditem, function (err, item) {
+        if (err) return console.log('error inserting feed item', err, feeditem)
         item = item[0]
         var itemId = item._id
         //add to feed items list
@@ -120,3 +121,15 @@ function getLink(link, description) {
     }
     return link
 }
+
+process.on('message', function(m){
+    console.log('got message')
+    if (m.command ==='updateFeed'){
+        db.feed.find({
+            _id: new ObjectId(m.feedId)
+        }, function(err, feed){
+            if (err) return console.log('error getting feed to update')
+            updateFeed(feed[0])
+        })
+    }
+})

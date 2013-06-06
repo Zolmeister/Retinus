@@ -101,7 +101,7 @@ var SubscriptionController = {
         var folder = req.param('folder', '__main__') || '__main__'
         var userId = req.session.user && req.session.user.id
         var subId = req.session.sub
-        
+
         if (!websiteUrl) return res.json({
             err: 'no feedurl specified'
         })
@@ -109,9 +109,8 @@ var SubscriptionController = {
         feedutil.getFeedUrl(websiteUrl).then(function (RSSurl) {
             //make sure we have a valid rss feed
             return feedutil.checkUrl(RSSurl)
-        }).then(function(RSSurl){
+        }).then(function (RSSurl) {
             //if feed exists, use that, otherwise create a new feed
-            //TODO: add last 10 items from feed to users unread
             return Feed.find({
                 feedurl: RSSurl
             }).then(function (feed) {
@@ -152,6 +151,23 @@ var SubscriptionController = {
                 feedId: feed.id,
                 folder: folder
             })
+
+            //add last 10 items from feed to users unread
+            var last10 = feed.items.slice(feed.items.length - 10).map(function (item) {
+                return {
+                    feedItemId: item.feedId,
+                    feedId: feed.id
+                }
+            })
+            sub.values.unread = sub.values.unread.concat(last10)
+            //if we havent seen the feed before, update it immidiately
+            if (last10.length === 0) {
+                console.log('sending')
+                feedDaemon.send({
+                    command: 'updateFeed',
+                    feedId: feed.id
+                })
+            }
             //write changes to subscriptions
             Subscription.update({
                 _id: sub.values.id
@@ -159,7 +175,7 @@ var SubscriptionController = {
                 if (e) console.log('error updating subscription')
                 return res.json(sub)
             })
-            
+
         }).fail(function (e) {
             console.log('error subscribing to rss url', e)
             return res.json({

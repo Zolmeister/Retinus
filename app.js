@@ -4,4 +4,4 @@ require('sails').lift(require('optimist').argv)
 // Start feed consumer
 
 var cp = require('child_process')
-var feeder = cp.fork(__dirname + '/feeder.js')
+GLOBAL.feedDaemon = cp.fork(__dirname + '/feeder.js')

@@ -6,6 +6,9 @@ var jquery = require('fs').readFileSync("./jquery.js").toString();
 
 function getFeedUrl(url) {
     var deferred = Q.defer()
+    if(url.indexOf('http')===-1){
+        url = 'http://'+url
+    }
     jsdom.env({
         html: url,
         src: [jquery],
@@ -49,7 +52,14 @@ function parseXml(body) {
     }
     return deferred.promise
 }
+/* types of feed layouts:
+rss:
+http://feeds.feedburner.com/newsyc100
 
+atom:
+http://fasthorizon.blogspot.com/feeds/posts/default
+http://what-if.xkcd.com/feed.atom
+*/
 function extractFeedContent(url) {
     return fetchFeed(url).then(function (body) {
         return parseXml(body)
@@ -76,9 +86,26 @@ function extractFeedContent(url) {
             var entries = result.feed.entry
             entries.reverse().forEach(function (item) {
                 var title = item.title
-                var description = item.content
-                var link = item.link.href
-                if (!title || !link) return
+                var description = item.content || item.summary
+                var link = item.link && item.link.href
+                
+                // to accomodate http://fasthorizon.blogspot.com/feeds/posts/default
+                if(typeof title==='object' && title.$t)
+                    title = title.$t
+                if(typeof description==='object' && description.$t)
+                    description = description.$t
+                if(!link && item.link && item.link[2] && item.link[2].href)
+                    link = item.link[2].href
+                if(typeof description!=='string')
+                    description=''
+                // yes, sometimes there is no title, so we must construct one
+                if(typeof title!=='string' && typeof description==='string' && description.length>=40){
+                    title = description.substr(0,40)+'...'
+                }
+                   
+                if (typeof title!=='string' || typeof link!=='string') {
+                    throw new Error('failed to extract'+ JSON.stringify(item,null,2))
+                }
                 var comp = {
                     title: title,
                     link: link,
@@ -88,6 +115,8 @@ function extractFeedContent(url) {
             })
         }
         return items
+    }).fail(function(err){
+        return console.log('error extracting feed content', err)  
     })
 }
 

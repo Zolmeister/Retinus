@@ -61,6 +61,12 @@ UnreadCollection = Backbone.Collection.extend({
                 unread.set('filter', false)
             }
         }.bind(this))
+        if (currentCount === 0) {
+            //TODO: fix this hack, use socket.io for pushing
+            setTimeout(function () {
+                this.reload()
+            }.bind(this), 500)
+        }
         this.trigger('filterUpdate')
     },
     select: function (node) {
