@@ -80,6 +80,16 @@ a {
     text-align: right;
     margin-right: 10px;
 }
+.add-feed-form, .import-form {
+    margin-left: 10px;
+    display: none;
+}
+.import-form {
+    margin-right: 10px;
+}
+.import-form input {
+    width:100%;
+}
 .minimize, .import {
     float: left;
 }

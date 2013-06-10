@@ -114,6 +114,7 @@ setInterval(updateAll, interval)
 setInterval(processItemQueue, 1000)
 
 function getLink(link, description) {
+    if(!description) return link
     if (link.indexOf('reddit.com') !== -1) {
         var matched = description.match('<br> <a href="(.+)">\\[link\\]</a>')
         console.log('reddit feed, extracting link', matched[1])

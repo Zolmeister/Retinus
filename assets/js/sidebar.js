@@ -12,7 +12,10 @@ FeedCollectionView = Backbone.View.extend({
     template: _.template($('#sidebar-view').html()),
 
     events: {
-        'click .add-feed': 'addFeed',
+        'click .add-feed': 'addFeedToggle',
+        'submit .add-feed-form': 'submitFeed',
+        'click .import': 'importToggle',
+        'change .import-form-file': 'importFeed',
         'click .feed, .folder-text, .all-items': 'filter',
         'click .minimize': 'minimize',
         'click .edit': 'edit',
@@ -22,25 +25,75 @@ FeedCollectionView = Backbone.View.extend({
 
     initialize: function () {
         this.model.bind("add", this.render, this)
-        _.bindAll(this, 'addFeed', 'edit', 'deleteFeed')
+        _.bindAll(this, 'addFeedToggle', 'edit', 'deleteFeed', 'submitFeed', 'importToggle', 'importFeed')
         this.minimized = false
         this.editing = false
+        this.adding = false
+        this.importing = false
     },
-    addFeed: function (ev) {
-        //todo: make this a view and use events
-        var url = prompt('feed url:')
-        var folder = prompt('folder name (optional)')
-        if (!url) return
+    addFeedToggle: function (ev) {
+        if(this.adding){
+            this.$('.add-feed-form').fadeOut(1000)
+            this.adding = false
+        } else {
+            this.$('.add-feed-form').show()
+            this.adding = true
+        }
+    },
+    submitFeed: function(ev){
+        ev.preventDefault()
+        var data = $(ev.target).serializeArray()
+        var url = data[0].value
+        var folder = data[1].value
+        this.addFeedToggle()
+        this.subscribeFeed(url, folder)
+    },
+    subscribeFeed: function(url, folder){
         var self = this
+        if (!url) return
         var req = {}
         req.feedurl = url
         if (folder) req.folder = folder
+        
         $.post('/subscription/subscribe', req, function (res) {
             if (res.err) {
                 return vent.trigger('Error:err', res.err)
             }
             self.model.fetch()
         })
+    },
+    importToggle: function(ev){
+        if (!(window.File && window.FileReader && window.FileList)) {
+            return vent.trigger('Error:err', 'The File APIs are not fully supported in this browser')
+        } 
+        if(this.importing){
+            this.$('.import-form').fadeOut(10000)
+            this.importing = false
+        } else {
+            this.$('.import-form').show()
+            this.importing = true
+        }
+    },
+    importFeed: function(ev){
+        var self = this
+        var file = ev.target.files[0]
+        if(!file || !file.type.match('xml.*')){
+           return vent.trigger('Error:err', 'Please select an XML file exported from google reader')
+        }
+        var reader = new FileReader()
+        reader.onload = function(e){
+            var xml = e.target.result
+            var parser= new DOMParser();
+            var parsed = $(parser.parseFromString(xml, 'text/xml'))
+            this.$('.import-form').html('Subscribing, this may take a while (~5min), depending on the number of subscriptions')
+            self.importToggle()
+            parsed.find('outline[type=rss]').each(function(i,out){
+                var url = out.getAttribute('xmlUrl')
+                var folder = out.parentElement.getAttribute('text')
+                self.subscribeFeed(url, folder)
+            })
+        }
+        reader.readAsText(file)
     },
     minimize: function (ev) {
         this.minimized = true
@@ -113,6 +166,7 @@ FeedCollectionView = Backbone.View.extend({
         }
     },
     filter: function (ev) {
+        vent.trigger('Unread:loading')
         var filter
         var target = $(ev.target)
         var type = target.attr('class')

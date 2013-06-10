@@ -32,6 +32,7 @@ UnreadCollection = Backbone.Collection.extend({
                 unread.set('visible', false)
             })
         }
+        
         this.currentFilter = filter || this.currentFilter
         var unreads = this.models
         var currentCount = 0
@@ -40,6 +41,7 @@ UnreadCollection = Backbone.Collection.extend({
             if (this.currentFilter(unread)) {
                 if (!unread.get('loaded') && currentCount < this.preloadCount) {
                     //load feed item
+                    vent.trigger('Unread:loading')
                     $.getJSON('/feeditem/' + unread.get('feedItemId'), (function (unread) {
                         return function (res) {
                             if (res.err) {
@@ -63,11 +65,11 @@ UnreadCollection = Backbone.Collection.extend({
         }.bind(this))
         if (currentCount === 0) {
             //TODO: fix this hack, use socket.io for pushing
-            setTimeout(function () {
-                this.reload()
-            }.bind(this), 500)
+            //setTimeout(function () {
+            //    this.reload()
+            //}.bind(this), 1000)
         }
-        this.trigger('filterUpdate')
+        //this.trigger('filterUpdate')
     },
     select: function (node) {
         //if given the nodes id, find the node
@@ -173,13 +175,17 @@ UnreadCollectionView = Backbone.View.extend({
     initialize: function () {
         //this.model.bind("add", this.update, this)
         vent.on('Unread:update', this.update.bind(this))
+        vent.on('Unread:loading', function(){
+            this.render({loading: true})
+        }.bind(this))
         this.model.bind("filterUpdate", this.render, this)
         $(document).bind('keydown', this.keydown.bind(this))
     },
-    render: function () {
+    render: function (data) {
         console.log('rendering')
         var rend = {
-            items: this.model.toJSON()
+            items: this.model.toJSON(),
+            loading: data && data.loading
         }
         $(this.el).html(this.template(rend))
         return this

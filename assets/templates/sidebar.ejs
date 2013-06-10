@@ -5,6 +5,23 @@
         <div class='add-feed'>+</div>
         <div class='import'>import</div>
         <div class='edit'><% if (!editing) { %>edit<% } else { %>done<% } %></div>
+        <form class="pure-form pure-form-stacked add-feed-form">
+            <fieldset>
+                <label for="url"></label>
+                <input name="url">
+                
+                <label for="folder">Folder (optional)</label>
+                <input name="folder">
+                <br><br>
+                <button type="submit" class="pure-button notice">Submit</button>
+            </fieldset>
+        </form>
+        <form class="pure-form pure-form-stacked import-form">
+            <fieldset>
+                <label for="file">Google Reader subscriptions.xml</label>
+                <input name="file" type='file' class='import-form-file'>
+            </fieldset>
+        </form>
         <div class='all-items'>All Items</div>
         <% _.each(folders, function(folder){%>
             <% if (folder.name !== '__main__') { %>
