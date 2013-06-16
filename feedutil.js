@@ -37,6 +37,8 @@ function getFeedType(result) {
         return 'rss'
     } else if (result.feed) {
         return 'atom'
+    } else if (result.rdf || result['rdf:RDF']) {
+        return 'rdf'
     }
     return null
 }
@@ -79,7 +81,7 @@ function extractFeedContent(url) {
             })
         } else if (type === 'atom') {
             var entries = result.feed.entry
-            entries.reverse().forEach(function (item) {
+            entries.forEach(function (item) {
                 var title = item.title
                 var description = item.content || item.summary
                 var link = item.link && item.link.href
@@ -97,6 +99,24 @@ function extractFeedContent(url) {
                 if (typeof title !== 'string' || typeof link !== 'string') {
                     throw new Error('failed to extract' + JSON.stringify(item, null, 2))
                 }
+                var comp = {
+                    title: title,
+                    link: link,
+                    description: description || title
+                }
+                items.push(comp)
+            })
+        } else if (type === 'rdf') {
+            var items = (result.rdf || result['rdf:RDF']).item
+            items.forEach(function (item) {
+                var title = item.title
+                var link = item.link
+                var description = item.description
+                
+                if (typeof title !== 'string' || typeof link !== 'string') {
+                    throw new Error('failed to extract' + JSON.stringify(item, null, 2))
+                }
+                
                 var comp = {
                     title: title,
                     link: link,
@@ -124,7 +144,7 @@ function checkUrl(rssUrl) {
         return parseXml(body)
     }).then(function (json) {
         var type = getFeedType(json)
-        if (type === 'rss' || type === 'atom') {
+        if (type === 'rss' || type === 'atom' || type === 'rdf') {
             return rssUrl
         } else {
             throw new Error('invalid url')
