@@ -16,6 +16,8 @@
     <% }) %>
     <% if(loading) { %>
         Loading...
+    <% } else if(items.length===0){ %>
+        None
     <% } %>
     </div>
 </script>
