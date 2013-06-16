@@ -146,4 +146,4 @@ var vent = _.extend({}, Backbone.Events);
 var retinusRoute = new AppRouter(vent)
 $(function(){
     Backbone.history.start()
-}
+})
