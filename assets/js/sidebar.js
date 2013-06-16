@@ -166,7 +166,6 @@ FeedCollectionView = Backbone.View.extend({
         }
     },
     filter: function (ev) {
-        vent.trigger('Unread:loading')
         var filter
         var target = $(ev.target)
         var type = target.attr('class')

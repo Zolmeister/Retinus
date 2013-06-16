@@ -22,6 +22,7 @@ UnreadCollection = Backbone.Collection.extend({
         _.bindAll(this, 'loopUnread')
     },
     applyFilter: function (filter) {
+        vent.trigger('Unread:loading')
         var self = this
         console.log('filter')
         if (filter && filter !== this.currentFilter) {
@@ -32,29 +33,31 @@ UnreadCollection = Backbone.Collection.extend({
                 unread.set('visible', false)
             })
         }
-        
+
         this.currentFilter = filter || this.currentFilter
         var unreads = this.models
         var currentCount = 0
+        var promises = []
         this.loopUnread(function (unread) {
             // decide whether to show item or not
             if (this.currentFilter(unread)) {
                 if (!unread.get('loaded') && currentCount < this.preloadCount) {
                     //load feed item
-                    vent.trigger('Unread:loading')
-                    $.getJSON('/feeditem/' + unread.get('feedItemId'), (function (unread) {
-                        return function (res) {
-                            if (res.err) {
-                                return vent.trigger('Error:err', res.err)
+                    promises.push($.Deferred(function (defer) {
+                        $.getJSON('/feeditem/' + unread.get('feedItemId'), (function (unread) {
+                            return function (res) {
+                                if (res.err) {
+                                    return vent.trigger('Error:err', res.err)
+                                }
+                                for (var key in res) {
+                                    unread.set(key, res[key])
+                                }
+                                unread.set('loaded', true)
+                                unread.set('visible', true)
+                                defer.resolve()
                             }
-                            for (var key in res) {
-                                unread.set(key, res[key])
-                            }
-                            unread.set('loaded', true)
-                            unread.set('visible', true)
-                            self.trigger('filterUpdate')
-                        }
-                    })(unread))
+                        })(unread))
+                    }).promise())
                     currentCount++
                 }
                 unread.set('filter', true)
@@ -69,6 +72,9 @@ UnreadCollection = Backbone.Collection.extend({
             //    this.reload()
             //}.bind(this), 1000)
         }
+        $.when.apply(null, promises).done(function () {
+            self.trigger('filterUpdate')
+        })
         //this.trigger('filterUpdate')
     },
     select: function (node) {
@@ -175,8 +181,10 @@ UnreadCollectionView = Backbone.View.extend({
     initialize: function () {
         //this.model.bind("add", this.update, this)
         vent.on('Unread:update', this.update.bind(this))
-        vent.on('Unread:loading', function(){
-            this.render({loading: true})
+        vent.on('Unread:loading', function () {
+            this.render({
+                loading: true
+            })
         }.bind(this))
         this.model.bind("filterUpdate", this.render, this)
         $(document).bind('keydown', this.keydown.bind(this))
