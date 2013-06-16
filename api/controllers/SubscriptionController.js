@@ -145,7 +145,7 @@ var SubscriptionController = {
                 return res.json(sub)
             }
 
-            console.log('subscibing to new feed')
+            console.log('subscribing to new feed')
             sub.values.feeds.push({
                 name: websiteUrl,
                 feedId: feed.id,
@@ -163,10 +163,14 @@ var SubscriptionController = {
             //if we havent seen the feed before, update it immidiately
             if (last10.length === 0) {
                 console.log('sending')
-                feedDaemon.send({
-                    command: 'updateFeed',
-                    feedId: feed.id
-                })
+                try {
+                    feedDaemon.send({
+                        command: 'updateFeed',
+                        feedId: feed.id
+                    })
+                } catch (e) {
+                    console.log('feedDaemon gone')
+                }
             }
             //write changes to subscriptions
             Subscription.update({
