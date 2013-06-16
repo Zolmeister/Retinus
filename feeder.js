@@ -13,7 +13,7 @@ var polish = require('polish')
 //TODO: move to config file
 var embedKey = '5c86b96b5c30467bad06dd9f518f52e3'
 var embedUrl = 'http://api.embed.ly/1/oembed?key=' + embedKey
-var interval = 1000 * 60 * 30; //30 mins
+var interval = 1000 * 60 * 60 * 4; //4 hours
 
 var itemQueue = [];
 
@@ -112,7 +112,7 @@ function insertItem(feedId, feeditem) {
 
 updateAll()
 setInterval(updateAll, interval)
-setInterval(processItemQueue, 1000)
+setInterval(processItemQueue, 10000)
 
 process.on('message', function(m){
     console.log('got message')
