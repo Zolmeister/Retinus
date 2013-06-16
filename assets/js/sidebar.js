@@ -85,7 +85,7 @@ FeedCollectionView = Backbone.View.extend({
             var xml = e.target.result
             var parser= new DOMParser();
             var parsed = $(parser.parseFromString(xml, 'text/xml'))
-            this.$('.import-form').html('Subscribing, this may take a while (~5min), depending on the number of subscriptions')
+            self.$('.import-form').html('Subscribing... This may take a while (~5min), depending on the number of subscriptions')
             self.importToggle()
             parsed.find('outline[type=rss]').each(function(i,out){
                 var url = out.getAttribute('xmlUrl')

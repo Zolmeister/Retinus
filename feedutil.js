@@ -2,12 +2,12 @@ var Q = require('q')
 var request = require('request')
 var xmlParser = require('xml2json')
 var jsdom = require('jsdom');
-var jquery = require('fs').readFileSync("./jquery.js").toString();
+var jquery = require('fs').readFileSync(__dirname + "/jquery.js").toString();
 
 function getFeedUrl(url) {
     var deferred = Q.defer()
-    if(url.indexOf('http')===-1){
-        url = 'http://'+url
+    if (url.indexOf('http') === -1) {
+        url = 'http://' + url
     }
     jsdom.env({
         html: url,
@@ -43,23 +43,18 @@ function getFeedType(result) {
 
 function parseXml(body) {
     var deferred = Q.defer()
-    try {
-        var result = JSON.parse(xmlParser.toJson(body))
+    
+    var result = JSON.parse(xmlParser.toJson(body))
+    if (Object.keys(result).length === 0) {
+        deferred.reject(new Error('empty response'))
+    } else {
         deferred.resolve(result)
-    } catch (err) {
-        console.log(err)
-        deferred.reject(err)
     }
+        
     return deferred.promise
 }
-/* types of feed layouts:
-rss:
-http://feeds.feedburner.com/newsyc100
 
-atom:
-http://fasthorizon.blogspot.com/feeds/posts/default
-http://what-if.xkcd.com/feed.atom
-*/
+// see unit test for tests
 function extractFeedContent(url) {
     return fetchFeed(url).then(function (body) {
         return parseXml(body)
@@ -78,7 +73,7 @@ function extractFeedContent(url) {
                 var comp = {
                     title: title,
                     link: link,
-                    description: description
+                    description: description || title
                 }
                 items.push(comp)
             })
@@ -88,35 +83,29 @@ function extractFeedContent(url) {
                 var title = item.title
                 var description = item.content || item.summary
                 var link = item.link && item.link.href
-                
+
                 // to accomodate http://fasthorizon.blogspot.com/feeds/posts/default
-                if(typeof title==='object' && title.$t)
-                    title = title.$t
-                if(typeof description==='object' && description.$t)
-                    description = description.$t
-                if(!link && item.link && item.link[2] && item.link[2].href)
-                    link = item.link[2].href
-                if(typeof description!=='string')
-                    description=''
+                if (typeof title === 'object' && title.$t) title = title.$t
+                if (typeof description === 'object' && description.$t) description = description.$t
+                if (!link && item.link && item.link[2] && item.link[2].href) link = item.link[2].href
+                if (typeof description !== 'string') description = ''
                 // yes, sometimes there is no title, so we must construct one
-                if(typeof title!=='string' && typeof description==='string' && description.length>=40){
-                    title = description.substr(0,40)+'...'
+                if (typeof title !== 'string' && typeof description === 'string' && description.length >= 40) {
+                    title = description.substr(0, 40) + '...'
                 }
-                   
-                if (typeof title!=='string' || typeof link!=='string') {
-                    throw new Error('failed to extract'+ JSON.stringify(item,null,2))
+
+                if (typeof title !== 'string' || typeof link !== 'string') {
+                    throw new Error('failed to extract' + JSON.stringify(item, null, 2))
                 }
                 var comp = {
                     title: title,
                     link: link,
-                    description: description
+                    description: description || title
                 }
                 items.push(comp)
             })
         }
         return items
-    }).fail(function(err){
-        return console.log('error extracting feed content', err)  
     })
 }
 
@@ -131,16 +120,25 @@ function fetchFeed(url) {
 
 function checkUrl(rssUrl) {
     //succeeds with url
-    return fetchFeed(rssUrl).then(function(body){
+    return fetchFeed(rssUrl).then(function (body) {
         return parseXml(body)
-    }).then(function(json){
+    }).then(function (json) {
         var type = getFeedType(json)
-        if(type==='rss' || type==='atom') {
+        if (type === 'rss' || type === 'atom') {
             return rssUrl
         } else {
-            throw new Error('invalid url') 
+            throw new Error('invalid url')
         }
     })
+}
+
+function getLink(link, description) {
+    if (!description) return link
+    if (link.indexOf('reddit.com') !== -1) {
+        var matched = description.match('<br> <a href="(.+)">\\[link\\]</a>')
+        return matched && matched[1] || link
+    }
+    return link
 }
 
 exports.getFeedUrl = getFeedUrl
@@ -149,3 +147,4 @@ exports.extractFeedContent = extractFeedContent
 exports.fetchFeed = fetchFeed
 exports.checkUrl = checkUrl
 exports.parseXml = parseXml
+exports.getLink = getLink

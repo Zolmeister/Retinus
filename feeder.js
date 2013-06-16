@@ -40,6 +40,7 @@ function updateFeed(feed) {
         feedutil.extractFeedContent(feed.feedurl).then(function (items) {
             //start with the oldest result (last one)
             items.reverse().forEach(function (item) {
+                // if 
                 if (titles.indexOf(item.title) === -1) {
                     enqueueItem(feed._id, item)
                 }
@@ -61,7 +62,7 @@ function processItemQueue() {
         }
         var feedId = queued[0]
         var item = queued[1]
-        item.link = getLink(item.link, item.desciption)
+        item.link = feedutil.getLink(item.link, item.desciption)
                             
         request(embedUrl + '&url=' + item.link, (function (feedId, item) {
             return function (err, res, embed) {
@@ -113,24 +114,14 @@ updateAll()
 setInterval(updateAll, interval)
 setInterval(processItemQueue, 1000)
 
-function getLink(link, description) {
-    if(!description) return link
-    if (link.indexOf('reddit.com') !== -1) {
-        var matched = description.match('<br> <a href="(.+)">\\[link\\]</a>')
-        console.log('reddit feed, extracting link', matched[1])
-        return matched && matched[1] || link
-    }
-    return link
-}
-
 process.on('message', function(m){
     console.log('got message')
     if (m.command ==='updateFeed'){
-        db.feed.find({
+        db.feed.findOne({
             _id: new ObjectId(m.feedId)
         }, function(err, feed){
             if (err) return console.log('error getting feed to update')
-            updateFeed(feed[0])
+            updateFeed(feed)
         })
     }
 })
