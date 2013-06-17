@@ -160,6 +160,7 @@ UnreadCollection = Backbone.Collection.extend({
         this.fetch({
             success: function () {
                 vent.trigger('Unread:update')
+                vent.trigger('Feed:refreshed')
             }
         })
     },

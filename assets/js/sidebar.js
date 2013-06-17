@@ -15,6 +15,7 @@ FeedCollectionView = Backbone.View.extend({
         'click .add-feed': 'addFeedToggle',
         'submit .add-feed-form': 'submitFeed',
         'click .import': 'importToggle',
+        'click .refresh': 'refresh',
         'change .import-form-file': 'importFeed',
         'click .feed, .folder-text, .all-items': 'filter',
         'click .minimize': 'minimize',
@@ -25,11 +26,14 @@ FeedCollectionView = Backbone.View.extend({
 
     initialize: function () {
         this.model.bind("add", this.render, this)
-        _.bindAll(this, 'addFeedToggle', 'edit', 'deleteFeed', 'submitFeed', 'importToggle', 'importFeed')
+        _.bindAll(this, 'addFeedToggle', 'edit', 'deleteFeed', 'submitFeed', 'importToggle', 'importFeed', 'refresh')
         this.minimized = false
         this.editing = false
         this.adding = false
         this.importing = false
+        vent.on('Feed:refreshed', function(){
+            this.$('.refresh').html('refresh')
+        }.bind(this))
     },
     addFeedToggle: function (ev) {
         if(this.adding){
@@ -39,6 +43,10 @@ FeedCollectionView = Backbone.View.extend({
             this.$('.add-feed-form').show()
             this.adding = true
         }
+    },
+    refresh: function(ev) {
+         $(ev.target).html('reloading...')
+         vent.trigger('Unread:reload')
     },
     submitFeed: function(ev){
         ev.preventDefault()

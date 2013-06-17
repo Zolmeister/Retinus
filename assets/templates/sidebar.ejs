@@ -3,11 +3,12 @@
     <% if (!minimized) { %>
         <div class='minimize'>&lt;&lt;</div>
         <div class='add-feed'>+</div>
-        <div class='import'>import</div>
+        <!--<div class='import'>import</div>-->
+        <div class='refresh'>refresh</div>
         <div class='edit'><% if (!editing) { %>edit<% } else { %>done<% } %></div>
         <form class="pure-form pure-form-stacked add-feed-form">
             <fieldset>
-                <label for="url"></label>
+                <label for="url">RSS feed url</label>
                 <input name="url">
                 
                 <label for="folder">Folder (optional)</label>

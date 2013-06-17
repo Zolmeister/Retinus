@@ -90,7 +90,7 @@ a {
 .import-form input {
     width:100%;
 }
-.minimize, .import {
+.minimize, .import, .refresh {
     float: left;
 }
 .edit {

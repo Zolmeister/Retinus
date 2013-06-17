@@ -24,6 +24,16 @@ var SubscriptionController = {
             return res.json({})
         })
     },
+    unreadCount: function(req, res){
+        var sub = req.session.sub
+        Subscription.find({
+            _id: sub
+        }).then(function (sub) {
+            return res.json({count:sub.values.unread.length})
+        }).fail(function (e) {
+            return res.json({err:'error getting unread'})
+        })
+    },
     unread: function (req, res) {
         var sub = req.session.sub
         Subscription.find({
