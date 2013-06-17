@@ -74,8 +74,14 @@ UnreadCollection = Backbone.Collection.extend({
         }
         $.when.apply(null, promises).done(function () {
             self.trigger('filterUpdate')
+            vent.trigger('Unread:count', self.getUnread())
         })
         //this.trigger('filterUpdate')
+    },
+    getUnread: function () {
+        return this.models.filter(function (model) {
+            return model.get('filter') && !model.get('read')
+        }).length
     },
     select: function (node) {
         //if given the nodes id, find the node
@@ -134,6 +140,7 @@ UnreadCollection = Backbone.Collection.extend({
         if (fetchNew && !this.selected) {
             this.reload()
         }
+        vent.trigger('Unread:count', this.getUnread())
     },
     markRead: function (node) {
         $.post('/subscription/markRead', {

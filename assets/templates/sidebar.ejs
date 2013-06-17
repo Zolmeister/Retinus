@@ -23,7 +23,7 @@
                 <input name="file" type='file' class='import-form-file'>
             </fieldset>
         </form>
-        <div class='all-items'>All Items</div>
+        <div class='all-items'>All Items <%= allUnread ? '('+allUnread+')': '' %></div>
         <% _.each(folders, function(folder){%>
             <% if (folder.name !== '__main__') { %>
                 <div class='folder' >

@@ -31,12 +31,18 @@ FeedCollectionView = Backbone.View.extend({
         this.editing = false
         this.adding = false
         this.importing = false
-        vent.on('Feed:refreshed', function(){
+        this.allUnread = null
+        vent.on('Feed:refreshed', function () {
             this.$('.refresh').html('refresh')
+        }.bind(this))
+        vent.on('Unread:count', function (cnt) {
+            // TODO: fix this hack
+            this.allUnread = cnt
+            this.$('.all-items').html('All Items (' + this.allUnread + ')')
         }.bind(this))
     },
     addFeedToggle: function (ev) {
-        if(this.adding){
+        if (this.adding) {
             this.$('.add-feed-form').fadeOut(1000)
             this.adding = false
         } else {
@@ -44,11 +50,11 @@ FeedCollectionView = Backbone.View.extend({
             this.adding = true
         }
     },
-    refresh: function(ev) {
-         $(ev.target).html('reloading...')
-         vent.trigger('Unread:reload')
+    refresh: function (ev) {
+        $(ev.target).html('reloading...')
+        vent.trigger('Unread:reload')
     },
-    submitFeed: function(ev){
+    submitFeed: function (ev) {
         ev.preventDefault()
         var data = $(ev.target).serializeArray()
         var url = data[0].value
@@ -56,13 +62,13 @@ FeedCollectionView = Backbone.View.extend({
         this.addFeedToggle()
         this.subscribeFeed(url, folder)
     },
-    subscribeFeed: function(url, folder){
+    subscribeFeed: function (url, folder) {
         var self = this
         if (!url) return
         var req = {}
         req.feedurl = url
         if (folder) req.folder = folder
-        
+
         $.post('/subscription/subscribe', req, function (res) {
             if (res.err) {
                 return vent.trigger('Error:err', res.err)
@@ -70,11 +76,11 @@ FeedCollectionView = Backbone.View.extend({
             self.model.fetch()
         })
     },
-    importToggle: function(ev){
+    importToggle: function (ev) {
         if (!(window.File && window.FileReader && window.FileList)) {
             return vent.trigger('Error:err', 'The File APIs are not fully supported in this browser')
-        } 
-        if(this.importing){
+        }
+        if (this.importing) {
             this.$('.import-form').fadeOut(10000)
             this.importing = false
         } else {
@@ -82,20 +88,20 @@ FeedCollectionView = Backbone.View.extend({
             this.importing = true
         }
     },
-    importFeed: function(ev){
+    importFeed: function (ev) {
         var self = this
         var file = ev.target.files[0]
-        if(!file || !file.type.match('xml.*')){
-           return vent.trigger('Error:err', 'Please select an XML file exported from google reader')
+        if (!file || !file.type.match('xml.*')) {
+            return vent.trigger('Error:err', 'Please select an XML file exported from google reader')
         }
         var reader = new FileReader()
-        reader.onload = function(e){
+        reader.onload = function (e) {
             var xml = e.target.result
-            var parser= new DOMParser();
+            var parser = new DOMParser();
             var parsed = $(parser.parseFromString(xml, 'text/xml'))
             self.$('.import-form').html('Subscribing... This may take a while (~5min), depending on the number of subscriptions')
             self.importToggle()
-            parsed.find('outline[type=rss]').each(function(i,out){
+            parsed.find('outline[type=rss]').each(function (i, out) {
                 var url = out.getAttribute('xmlUrl')
                 var folder = out.parentElement.getAttribute('text')
                 self.subscribeFeed(url, folder)
@@ -211,7 +217,8 @@ FeedCollectionView = Backbone.View.extend({
         var rend = {
             folders: [],
             minimized: this.minimized,
-            editing: this.editing
+            editing: this.editing,
+            allUnread: this.allUnread
         }
         var folders = {}
         var feeds = this.model.models
