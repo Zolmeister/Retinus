@@ -98,14 +98,14 @@ var AppRouter = Backbone.Router.extend({
         }
         var feeds = new FeedCollection()
         var $el = $('<div id="sidebar">')
-        $('body').append($el)
+        $('.container').append($el)
         var sideBar = new FeedCollectionView({
             model: feeds,
             el: $el
         })
         var unread = new UnreadCollection()
         $el = $('<div id="main">')
-        $('body').append($el)
+        $('.container').append($el)
         var mainView = new UnreadCollectionView({
             model: unread,
             el: $el
@@ -125,7 +125,7 @@ var AppRouter = Backbone.Router.extend({
         //TODO: fix this hack
         $('.logout').hide()
         var $el = $('<div id="login">')
-        $('body').append($el)
+        $('.container').append($el)
         var loginView = new LoginView({
             el: $el
         })

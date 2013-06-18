@@ -14,6 +14,7 @@
         <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.1.0/pure-min.css">
         <link href='http://fonts.googleapis.com/css?family=Arimo:400,700' rel='stylesheet' type='text/css'>
         <%- assets.css() %>
+        
         <script>
           (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
           (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -27,12 +28,21 @@
     </head>
 
     <body>
-        <%- body %>
-
-        <!-- Templates from your view path are included here -->
-        <%- assets.templateLibrary() %>
-
-        <!-- Javascripts from your assets folder are included here -->
-        <%- assets.js() %>
+        <div class='container'>
+            <%- body %>
+            
+            <footer>
+                <a href='http://zolmeister.com'>Author </a>|
+                <a target='_blank' href='https://github.com/Zolmeister/Retinus'> Source Code </a>|
+                <a target='_blank' href='tos.txt'> ToS </a>|
+                <a target='_blank' href='privacy.txt'> Privacy </a>| ©2013
+            </footer>
+            
+            <!-- Templates from your view path are included here -->
+            <%- assets.templateLibrary() %>
+    
+            <!-- Javascripts from your assets folder are included here -->
+            <%- assets.js() %>
+        </div>
     </body>
 </html>

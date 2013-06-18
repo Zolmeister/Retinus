@@ -1,3 +1,6 @@
+html, body {
+    height: 100%;
+}
 body {
     background-image: url('/images/bg.png');
     color: #ccc;
@@ -5,6 +8,21 @@ body {
 }
 a {
     color:inherit;
+}
+.container {
+    margin-bottom: 18px;
+    min-height:100%;
+    position: relative;
+}
+footer {
+    height: 18px;
+    position:absolute;
+    bottom: 0px;
+    color: #666;
+    width:100%;
+    text-align:center;
+    font-size: 12px;
+    text-shadow: .1px .1px #222, -.5px -.5px #333;
 }
 ::-webkit-scrollbar {
     width: 14px;
