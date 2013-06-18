@@ -204,6 +204,7 @@ UnreadCollectionView = Backbone.View.extend({
             loading: data && data.loading
         }
         $(this.el).html(this.template(rend))
+        $('.selected a').focus()
         return this
     },
     update: function () {
