@@ -13,14 +13,19 @@ var polish = require('polish')
 //TODO: move to config file
 var embedKey = '5c86b96b5c30467bad06dd9f518f52e3'
 var embedUrl = 'http://api.embed.ly/1/oembed?key=' + embedKey
-var interval = 1000 * 60 * 60 * 4; //4 hours
+var interval = 1000 * 60 * 60 * 4; // 4 hours
+var queueInterval = 1000 * 10; // 10 seconds
 
 var itemQueue = [];
 
 function updateAll() {
     db.feed.find(function (err, feeds) {
-        feeds.forEach(function (feed) { // for each feed
-            updateFeed(feed)
+        feeds.forEach(function (feed, i) { // for each feed
+            
+            // space out feed updates to not swamp server
+            setTimeout(function () {
+                updateFeed(feed)
+            }, 1000 * i)
         })
     })
 }
@@ -32,7 +37,7 @@ function updateFeed(feed) {
             $in: itemIds
         }
     }, function (err, feedItems) {
-        if(err) return console.log('error updating feed', err)
+        if (err) return console.log('error updating feed', err)
         var titles = feedItems.map(function (item) {
             return item.title
         })
@@ -63,7 +68,7 @@ function processItemQueue() {
         var feedId = queued[0]
         var item = queued[1]
         item.link = feedutil.getLink(item.link, item.desciption)
-                            
+
         request(embedUrl + '&url=' + item.link, (function (feedId, item) {
             return function (err, res, embed) {
                 if (err) return console.log('error fetching url summary')
@@ -112,14 +117,14 @@ function insertItem(feedId, feeditem) {
 
 updateAll()
 setInterval(updateAll, interval)
-setInterval(processItemQueue, 10000)
+setInterval(processItemQueue, queueInterval)
 
-process.on('message', function(m){
+process.on('message', function (m) {
     console.log('got message')
-    if (m.command ==='updateFeed'){
+    if (m.command === 'updateFeed') {
         db.feed.findOne({
             _id: new ObjectId(m.feedId)
-        }, function(err, feed){
+        }, function (err, feed) {
             if (err) return console.log('error getting feed to update')
             updateFeed(feed)
         })
