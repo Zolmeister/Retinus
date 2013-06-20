@@ -21,7 +21,7 @@ function setCount(cnt) {
 
 function check() {
     $.getJSON('http://retin.us/subscription/unreadCount', function (data) {
-        data.count && setCount(data.count) || setCount(0)
+        data && (data.count === 0 ? setCount('') : setCount(data.count))
     })
 }
 

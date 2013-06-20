@@ -3,7 +3,7 @@
 
   "name": "Retinus Checker",
   "description": "Retinus unread counter",
-  "version": "0.2",
+  "version": "0.3",
   "icons": {
     "128":"icon.png"
   },
