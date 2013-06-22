@@ -50,7 +50,8 @@ var SubscriptionController = {
     },
     markRead: function (req, res) {
         console.log('read', req.param('feedItemId'))
-        var interesting = req.param('interesting', false)
+        var interesting = req.param('interesting') == 'true' ? true : false
+        
         var feedItemId;
         try {
             feedItemId = new ObjectId(req.param('feedItemId'))
@@ -105,7 +106,7 @@ var SubscriptionController = {
         }
 
         History.update({
-            _id: feedItemId
+            feedItemId: feedItemId
         }, {
             interesting: true
         }, function (err, hist) {
