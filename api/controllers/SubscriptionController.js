@@ -24,14 +24,18 @@ var SubscriptionController = {
             return res.json({})
         })
     },
-    unreadCount: function(req, res){
+    unreadCount: function (req, res) {
         var sub = req.session.sub
         Subscription.find({
             _id: sub
         }).then(function (sub) {
-            return res.json({count:sub.values.unread.length})
+            return res.json({
+                count: sub.values.unread.length
+            })
         }).fail(function (e) {
-            return res.json({err:'error getting unread'})
+            return res.json({
+                err: 'error getting unread'
+            })
         })
     },
     unread: function (req, res) {
@@ -46,13 +50,16 @@ var SubscriptionController = {
     },
     markRead: function (req, res) {
         console.log('read', req.param('feedItemId'))
+        var interesting = req.param('interesting', false)
+        var feedItemId;
         try {
-            var feedItemId = new ObjectId(req.param('feedItemId'))
+            feedItemId = new ObjectId(req.param('feedItemId'))
         } catch (e) {
             return res.json({
                 err: 'bad feedItemId'
             })
         }
+        // remove from unread list
         var sub = req.session.sub
         Subscription.update({
             _id: sub
@@ -66,6 +73,45 @@ var SubscriptionController = {
             if (err || !sub) {
                 return res.json({
                     err: 'can\'t mark as read'
+                })
+            }
+
+            // log interest
+            console.log('interesting: ', interesting)
+            History.create({
+                sub: req.session.sub,
+                interesting: interesting,
+                feedItemId: feedItemId
+            }).then(function (hist) {
+                return res.json({
+                    success: true
+                })
+            }).fail(function (err) {
+                return res.json({
+                    err: 'error saving'
+                })
+            })
+        })
+    },
+    markInteresting: function (req, res) {
+        console.log('mark interesting', req.param('feedItemId'))
+        var feedItemId;
+        try {
+            feedItemId = new ObjectId(req.param('feedItemId'))
+        } catch (e) {
+            return res.json({
+                err: 'bad feedItemId'
+            })
+        }
+
+        History.update({
+            _id: feedItemId
+        }, {
+            interesting: true
+        }, function (err, hist) {
+            if (err) {
+                return res.json({
+                    err: 'error saving'
                 })
             }
             return res.json({

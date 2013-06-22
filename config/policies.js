@@ -29,7 +29,8 @@ module.exports.policies = {
         markRead: 'authenticated',
         subscribe: 'authenticated',
         unsub: 'authenticated',
-        unreadCount: 'authenticated'
+        unreadCount: 'authenticated',
+        markInteresting: 'authenticated'
     },
     UserController: {
         '*': false

@@ -112,10 +112,13 @@ UnreadCollection = Backbone.Collection.extend({
         }
         if (node) {
             this.selected = node
+            if (!this.selected.get('read')) {
+                this.markRead(this.selected)
+            }
             this.selected.set('selected', true)
             this.selected.set('visible', true)
             this.selected.set('read', true)
-            this.markRead(this.selected)
+
         }
 
         var visibleCount = 0
@@ -144,7 +147,8 @@ UnreadCollection = Backbone.Collection.extend({
     },
     markRead: function (node) {
         $.post('/subscription/markRead', {
-            feedItemId: node.get('feedItemId')
+            feedItemId: node.get('feedItemId'),
+            interesting: node.get('interesting') || false
         }, function (res) {
             if (res.err) {
                 return vent.trigger('Error:err', res.err)
@@ -177,6 +181,25 @@ UnreadCollection = Backbone.Collection.extend({
             var unread = unreads[i]
             fn(unread)
         }
+    },
+    interest: function (id) {
+        var model = this.get({
+            id: id
+        });
+        
+        // if marked read already, server needs to update history
+        if (!model.get('interesting') && model.get('read')) {
+            $.post('/subscription/markInteresting', {
+                feedItemId: model.get('feedItemId')
+            }, function (res) {
+                if (res.err) {
+                    return vent.trigger('Error:err', res.err)
+                }
+                console.log('interest', res)
+            })
+        } 
+        // otherwise send it on mark read
+        model.set('interesting', true);
     }
 })
 
@@ -184,7 +207,9 @@ UnreadCollection = Backbone.Collection.extend({
 UnreadCollectionView = Backbone.View.extend({
     template: _.template($('#main-view').html()),
     events: {
-        'click .unread-item': 'selectUnread'
+        'click .unread-item': 'selectUnread',
+        'click .unread-item a': 'logInterest',
+        'mousedown .unread-item a': 'logInterest'
     },
     initialize: function () {
         //this.model.bind("add", this.update, this)
@@ -210,6 +235,10 @@ UnreadCollectionView = Backbone.View.extend({
     update: function () {
         console.log('applying filter')
         this.model.applyFilter()
+    },
+    logInterest: function (ev) {
+        var id = ev.target.parentElement.getAttribute('data-id')
+        this.model.interest(id)
     },
     selectUnread: function (ev) {
         var id = ev.target.parentElement.getAttribute('data-id')
