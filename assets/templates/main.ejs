@@ -8,7 +8,7 @@
                     item.selected ? 'selected' : '' 
                 %>' data-id='<%= item.feedItemId %>'>
                 <a class='item-link' href='<%= item.link %>' target='_blank'>
-                    <%= item.title %>
+                    <%= item.title.replace(/&amp;&#35;40;/g, '&#40;') %>
                 </a>
                 <span><%= item.summary %></span>
             </div>

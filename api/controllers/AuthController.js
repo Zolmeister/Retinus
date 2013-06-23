@@ -2,7 +2,8 @@
 	:: Auth 
 	-> controller
 ---------------------*/
-var passwordHash = require('password-hash')
+var passwordHash = require('password-hash'),
+    subController = require('./SubscriptionController');
 var AuthController = {
 
     signup: function (req, res) {
@@ -40,7 +41,14 @@ var AuthController = {
                         req.session.authenticated = true
                         req.session.user = user
                         req.session.sub = user.subscription
-                        return res.json({success: true})
+                        
+                        // default user to hacker news sub
+                        subController.subscribeFeed('http://feeds.feedburner.com/newsyc100', '__main__', req.session.sub, function (err, sub) {
+                            if (err) {
+                                console.log('error subscribing', err)
+                            }
+                            return res.json({success: true})
+                        })
                     })
                 }).fail(function (e) {
                     return res.json({

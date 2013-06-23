@@ -7,7 +7,7 @@ var jsdom = require('jsdom');
 var fs = require('fs');
 var jquery = fs.readFileSync("./jquery.js").toString();
 var feedutil = require('../../feedutil')
-var request = require('request')
+var request = require('request');
 
 var SubscriptionController = {
     index: function (req, res) {
@@ -51,7 +51,7 @@ var SubscriptionController = {
     markRead: function (req, res) {
         console.log('read', req.param('feedItemId'))
         var interesting = req.param('interesting') == 'true' ? true : false
-        
+
         var feedItemId;
         try {
             feedItemId = new ObjectId(req.param('feedItemId'))
@@ -156,14 +156,25 @@ var SubscriptionController = {
         console.log('subscribing')
         var websiteUrl = req.param('feedurl')
         var folder = req.param('folder', '__main__') || '__main__'
-        var userId = req.session.user && req.session.user.id
         var subId = req.session.sub
 
         if (!websiteUrl) return res.json({
             err: 'no feedurl specified'
         })
 
-        feedutil.getFeedUrl(websiteUrl).then(function (RSSurl) {
+        this.subscribeFeed(websiteUrl, folder, subId, function (err, sub) {
+            if (err) {
+                console.log('error subscribing to rss url', err)
+                return res.json({
+                    err: err
+                })
+            }
+            return res.json(sub)
+        })
+
+    },
+    subscribeFeed: function (websiteUrl, folder, subId, cb) {
+        return feedutil.getFeedUrl(websiteUrl).then(function (RSSurl) {
             //make sure we have a valid rss feed
             return feedutil.checkUrl(RSSurl)
         }).then(function (RSSurl) {
@@ -233,17 +244,12 @@ var SubscriptionController = {
             Subscription.update({
                 _id: sub.values.id
             }, sub.values, function (e) {
-                if (e) console.log('error updating subscription')
-                return res.json(sub)
+                cb(e, sub);
             })
 
-        }).fail(function (e) {
-            console.log('error subscribing to rss url', e)
-            return res.json({
-                err: err
-            })
+        }).fail(function (err) {
+            cb(err);
         })
-
     }
 };
 module.exports = SubscriptionController;
