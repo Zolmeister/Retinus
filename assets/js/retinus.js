@@ -18,7 +18,7 @@ LoginView = Backbone.View.extend({
         $.post('/auth/signup', $('#signup-form').serialize(), this.verifyLogin)
     },
     verifyLogin: function (res) {
-        if(res.err){
+        if (res.err) {
             vent.trigger('Error:err', res.err)
         } else if (res.success) {
             Authed = true
@@ -75,7 +75,7 @@ var AppRouter = Backbone.Router.extend({
             view.render()
         })
     },
-    addView: function(view){
+    addView: function (view) {
         this.currentViews.push(view)
         view.render()
     },
@@ -133,7 +133,7 @@ var AppRouter = Backbone.Router.extend({
     },
     logout: function () {
         $.get('/auth/logout', function (res) {
-            if(res.err){
+            if (res.err) {
                 return vent.trigger('Error:err', res.err)
             }
             Authed = false
@@ -144,6 +144,19 @@ var AppRouter = Backbone.Router.extend({
 
 var vent = _.extend({}, Backbone.Events);
 var retinusRoute = new AppRouter(vent)
-$(function(){
+$(function () {
     Backbone.history.start()
 })
+var $theme = $('#theme');
+if (localStorage.theme === 'light') {
+    $theme.html(' dark theme ')
+    $theme.bind('click', function () {
+        localStorage.theme = 'dark'
+        window.location.reload()
+    })
+} else {
+    $theme.bind('mousedown', function () {
+        localStorage.theme = 'light'
+        window.location.reload()
+    })
+}

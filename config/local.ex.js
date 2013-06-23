@@ -11,3 +11,5 @@
 // or to keep your db credentials out of the repo, but to use them on the local machine
 // override the `modelDefaults` config
 // module.exports.modelDefaults = { database: 'foo', user: 'bar', password: 'baZ'}
+
+exports.sessionSecret = 'super_sercret_88291233986751'

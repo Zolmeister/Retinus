@@ -2,8 +2,6 @@ html, body {
     height: 100%;
 }
 body {
-    background-image: url('/images/bg.png');
-    color: #ccc;
     font-family: Arial, sans-serif;
 }
 a {
@@ -18,23 +16,10 @@ footer {
     height: 18px;
     position:absolute;
     bottom: 0px;
-    color: #666;
     width:100%;
     text-align:center;
     font-size: 12px;
-    text-shadow: .1px .1px #222, -.5px -.5px #333;
-}
-::-webkit-scrollbar {
-    width: 14px;
-    background-color: #373737;
-}
-::-webkit-scrollbar-track {
-    -webkit-box-shadow: inset 0 0 2px rgba(0,0,0,0.3); 
-    border-radius: 4px;
-}
-::-webkit-scrollbar-thumb {
-    border-radius: 4px;
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
+    z-index: 9001;
 }
 
 /* top */
@@ -123,14 +108,10 @@ footer {
     height: 6px;
     padding: 2px;
     margin-top: 4px;
-    background: rgba(255,100,100,.5);
     float: left;
     margin-right: 10px;
     right: 0px;
     border-radius: 2px;
-}
-.delete:hover {
-    background: rgba(255,100,100,.7);
 }
 
 /* main */
@@ -147,7 +128,6 @@ footer {
     position: absolute;
     height: 100%;
     width: 1px;
-    background-color: #999;
 }
 .reader {
     padding: 60px 100px;
@@ -159,23 +139,15 @@ footer {
     font-family: 'Arimo', sans-serif;
     max-width: 700px;
 }
-.reader .read, .reader .read .item-link{
-    color: #999;
-}
-.reader .selected, .reader .selected .item-link {
-    color: #ddd;
-}
 .reader .selected:before{
     content: '';
     position: absolute;
-    background-color: #999;
     width: 4px;
     height: 100%;
     margin-left: -25px;
 }
 .item-link {
     font-family: Arial, sans-serif;
-    color: #ccc;
     font-weight: bold;
     display: block;
     padding-bottom: 5px;
@@ -202,14 +174,10 @@ footer {
     width:2px;
     height:100%;
     margin-left:-10px;
-    background-color: #999;
 }
 #login h1 {
     font-size: 20px;
     padding:20px
-}
-#login label {
-    color: #ccc;
 }
 
 /* errors */
@@ -222,7 +190,6 @@ footer {
 }
 .error {
     text-align: center;
-    background: rgba(255,100,100,.5);
     padding: 10px;
     margin: 10px;
     border-radius: 5px;

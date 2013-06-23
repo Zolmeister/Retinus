@@ -1,3 +1,4 @@
+var localConf = require('./local')
 module.exports = {
 	
 	// Name of the application (used as default <title>)
@@ -26,5 +27,5 @@ module.exports = {
 	log: {
 		level: 'info'
 	}
-
+    
 };
