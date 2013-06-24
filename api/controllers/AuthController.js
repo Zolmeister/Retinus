@@ -47,7 +47,12 @@ var AuthController = {
                             if (err) {
                                 console.log('error subscribing', err)
                             }
-                            return res.json({success: true})
+                            subController.subscribeFeed('http://www.zolmeister.com', '__main__', req.session.sub, function(err, sub){
+                                if (err) {
+                                    console.log('error subscribing', err)
+                                }
+                                return res.json({success: true})
+                            })
                         })
                     })
                 }).fail(function (e) {
