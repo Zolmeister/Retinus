@@ -162,7 +162,7 @@ var SubscriptionController = {
             err: 'no feedurl specified'
         })
 
-        this.subscribeFeed(websiteUrl, folder, subId, function (err, sub) {
+        SubscriptionController.subscribeFeed(websiteUrl, folder, subId, function (err, sub) {
             if (err) {
                 console.log('error subscribing to rss url', err)
                 return res.json({
