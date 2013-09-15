@@ -49,14 +49,12 @@ db.history.find().skip(1000).toArray(function (err, docs) {
 console.log('loading data')
 var docs = JSON.parse(fs.readFileSync('save.json'))
 
-var classifier = new natural.BayesClassifier()
-var classifierTitle = new natural.BayesClassifier()
-var testSize = 50
-var sampleSize = docs.length - testSize - 3510
+var classifier1 = new natural.BayesClassifier()
+var classifier2 = new natural.BayesClassifier()
+var classifierSum = new natural.LogisticRegressionClassifier()
+var testSize = 200
+var sampleSize = docs.length - testSize //- 3510
 var linkHistory = {}
-var svm = new svmjs.SVM()
-var svmTrainData = []
-var svmLabels = []
 
 // Here we train the calssifiers / history ticker
 console.log('training', sampleSize)
@@ -69,49 +67,20 @@ for(var i=testSize;i<sampleSize+testSize;i++) {
   //docs[i].interesting && linkHistory[hostname].clicks++
   
   // bayes classifier
-  classifier.addDocument(docs[i].feedItem.summary.toLowerCase(), docs[i].interesting ? 'read' : 'skip')
-  classifier.addDocument(docs[i].feedItem.title.toLowerCase(), docs[i].interesting ? 'read' : 'skip')
+  classifier1.addDocument(docs[i].feedItem.summary.toLowerCase(), docs[i].interesting)
+  classifier2.addDocument(docs[i].feedItem.title.toLowerCase(), docs[i].interesting)
   //classifier.addDocument(docs[i].feedItem.description.toLowerCase(), docs[i].interesting ? 'read' : 'skip')
- 
-
 }
 
-// finish training the bayes classifier, to be used in the svm
 console.log('training bayes classifier')
-classifier.train()
+classifier1.train()
+classifier2.train()
 
-// Now, we feed raw scores from all features into the svm trainig data
-for(var i=testSize;i<sampleSize+testSize;i++) {
-  
-  // history
-  //var hostname = url.parse(docs[i].feedItem.link).hostname
-  //var ratio = linkHistory[hostname].clicks / linkHistory[hostname].total
-  
-  // if a link doesn't have a at least 20 entries, ignore the raio (set to 50%)
-  //if(linkHistory[hostname].total < 20) ratio = 0.5
-  
-  // bayes score
-  //var tag = classifier.classify(docs[i].feedItem.summary.toLowerCase()) ? 'read': 'skip'
-  var score = classifier.getClassifications(docs[i].feedItem.summary.toLowerCase())
-  var tag = score[0].value > score[1].value*10000 ? 'read': 'skip'
-  //svmTrainData.push([tag==='read'? 1 : -1 ])
-  svmTrainData.push([docs[i].interesting ? 1 : 0])
-  svmLabels.push(docs[i].interesting ? 1 : 0)
-}
-console.log('svm training labels (correct answers')
-console.log(JSON.stringify(svmLabels))
-console.log('svm train data (classifying already classified data)')
-console.log(JSON.stringify(svmTrainData))
-
-//classifierTitle.train()
-svm.train(svmTrainData, svmLabels, {C: 1.0, numpasses: 100, tol: 1e-5, maxiter: 1e6})
 console.log('testing')
 
-
-// Now we have a trained SVM, lets predict
-var testData = []
-var testAns = []
-for(var i=0;i<testSize;i++) {
+var testData = [] // guessed results
+var testAns = [] // expected results
+for(var i=testSize;i<sampleSize+testSize;i++) {
   //var hostname = url.parse(docs[i].feedItem.link).hostname
   //var hist = linkHistory[hostname]
   //var ratio = hist && hist.clicks / hist.total
@@ -119,38 +88,41 @@ for(var i=0;i<testSize;i++) {
   // if a link doesn't have a at least 20 entries, ignore the raio (set to 50%)
   //if(!hist || hist.total < 20) ratio = 0.5
 
-  //var tag = classifier.classify(docs[i].feedItem.summary.toLowerCase())
-  var score = classifier.getClassifications(docs[i].feedItem.summary.toLowerCase())
-  var tag = score[0].value > score[1].value*10000 ? 'read': 'skip'
+  var tag1 = classifier1.classify(docs[i].feedItem.summary.toLowerCase())
+  var tag2 = classifier2.classify(docs[i].feedItem.title.toLowerCase())
+  
+  classifierSum.addDocument([tag1, tag2], docs[i].interesting)
   //testData.push([tag==='read'? 1 : -1 ])
-  testData.push(docs[i].interesting ? 1 : -1)
-  testAns.push(docs[i].interesting ? 1 : -1)
+  //testData.push(tag === 'true' ? true : false)
+  //testAns.push(docs[i].interesting)
 }
-console.log('This is the result of the bayes classifier')
-console.log(JSON.stringify(testData))
-console.log('These are the correct labeled answers')
-console.log(JSON.stringify(testAns))
 
-var answers = svm.predict(testData)
-console.log('This is what the svm spits out')
-console.log(JSON.stringify(answers))
+classifierSum.train()
 
-// now lets check the svm results
+for(var i=0;i<testSize;i++) {
+  var tag1 = classifier1.classify(docs[i].feedItem.summary.toLowerCase())
+  var tag2 = classifier2.classify(docs[i].feedItem.title.toLowerCase())
+  var tag = classifierSum.classify([tag1, tag2])
+  
+  testData.push(tag === 'true' ? true : false)
+  testAns.push(docs[i].interesting)  
+}
+
 var correct = 0
 var falseNegs = 0
-for(var i=0;i<answers.length;i++) {
-  if(answers[i] === testAns[i]) correct++
-  if(answers[i] !== testAns[i] && testAns[i] === 1) falseNegs++
+for(var i=0;i<testData.length;i++) {
+  if(testData[i] === testAns[i]) correct++
+  if(testData[i] !== testAns[i] && testAns[i]) falseNegs++
 }
 console.log('----- Results -----')
-console.log(correct, 'correct out of', answers.length)
-console.log(correct/answers.length*100, '%')
+console.log(correct, 'correct out of', testData.length)
+console.log(correct/testData.length*100, '%')
 console.log('false negatives', falseNegs)
-console.log('1s', answers.reduce(function(b, r){return b+(r==1? 1:0)}, 0))
-console.log('1s in doc', docs.slice(testSize, sampleSize+testSize).reduce(function(b, r){
-  return b+(r.interesting?1:0)
-},0))
-console.log('1s in correct labels', testAns.reduce(function(b, r){return b+(r==1? 1:0)}, 0))
+console.log('trues in guessed test results', testData.reduce(function(b, r){return b+(r? 1:0)}, 0))
+//console.log('1s in doc', docs.slice(testSize, sampleSize+testSize).reduce(function(b, r){
+//  return b+(r.interesting?1:0)
+//},0))
+console.log('trues in correct test results', testAns.reduce(function(b, r){return b+(r? 1:0)}, 0))
 //console.log('svm results:', answers)
 
 
