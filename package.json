@@ -17,7 +17,8 @@
     "xml2json": "~0.3.2",
     "natural": "~0.1.21",
     "svm": "~0.1.1",
-    "bayes": "0.0.2"
+    "bayes": "0.0.2",
+    "credulous": "0.0.4"
   },
   "scripts": {
     "start": "node app.js",

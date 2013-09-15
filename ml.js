@@ -4,7 +4,8 @@ var mongojs = require('mongojs'),
   fs = require('fs'),
   svmjs = require('svm'),
   url = require('url'),
-  bayes = require('bayes');
+  bayes = require('bayes'),
+  credulous = require('credulous')
 
 /*
 console.log('getting history')
@@ -51,7 +52,7 @@ var docs = JSON.parse(fs.readFileSync('save.json'))
 var classifier = new natural.BayesClassifier()
 var classifierTitle = new natural.BayesClassifier()
 var testSize = 50
-var sampleSize = docs.length - testSize - 3800
+var sampleSize = docs.length - testSize - 3510
 var linkHistory = {}
 var svm = new svmjs.SVM()
 var svmTrainData = []
@@ -62,17 +63,17 @@ console.log('training', sampleSize)
 for(var i=testSize;i<sampleSize+testSize;i++) {
   
   // train history
-  var hostname = url.parse(docs[i].feedItem.link).hostname
-  if(!linkHistory[hostname]) linkHistory[hostname] = {clicks: 0, total: 0}
-  linkHistory[hostname].total++
-  docs[i].interesting && linkHistory[hostname].clicks++
+  //var hostname = url.parse(docs[i].feedItem.link).hostname
+  //if(!linkHistory[hostname]) linkHistory[hostname] = {clicks: 0, total: 0}
+  //linkHistory[hostname].total++
+  //docs[i].interesting && linkHistory[hostname].clicks++
   
   // bayes classifier
   classifier.addDocument(docs[i].feedItem.summary.toLowerCase(), docs[i].interesting ? 'read' : 'skip')
-  //classifierTitle.addDocument(docs[i].feedItem.title, docs[i].interesting ? 'read' : 'skip')
+  classifier.addDocument(docs[i].feedItem.title.toLowerCase(), docs[i].interesting ? 'read' : 'skip')
+  //classifier.addDocument(docs[i].feedItem.description.toLowerCase(), docs[i].interesting ? 'read' : 'skip')
+ 
 
-  // svm labels for later
-  svmLabels.push(docs[i].interesting ? 1 : 0)
 }
 
 // finish training the bayes classifier, to be used in the svm
@@ -83,34 +84,27 @@ classifier.train()
 for(var i=testSize;i<sampleSize+testSize;i++) {
   
   // history
-  var hostname = url.parse(docs[i].feedItem.link).hostname
-  var ratio = linkHistory[hostname].clicks / linkHistory[hostname].total
+  //var hostname = url.parse(docs[i].feedItem.link).hostname
+  //var ratio = linkHistory[hostname].clicks / linkHistory[hostname].total
   
   // if a link doesn't have a at least 20 entries, ignore the raio (set to 50%)
-  if(linkHistory[hostname].total < 20) ratio = 0.5
+  //if(linkHistory[hostname].total < 20) ratio = 0.5
   
   // bayes score
-  var scores = classifier.getClassifications(docs[i].feedItem.summary.toLowerCase())
-  if(scores[0].label === 'read'){
-    var readBayes = scores[0].value, skipBayes = scores[1].value
-  } else {
-    var readBayes = scores[1].value, skipBayes = scores[0].value
-  }
-
-  //svmTrainData.push([readBayes, ratio])
-  //svmTrainData.push([readBayes])
-  var tag = classifier.classify(docs[i].feedItem.summary.toLocaleLowerCase()) ? 'read': 'skip'
-  //classifier.classify(docs[i].feedItem.summary.toLocaleLowerCase())
-  //console.log(tag)
-  svmTrainData.push([tag==='read'? 1 : -1 ])
+  //var tag = classifier.classify(docs[i].feedItem.summary.toLowerCase()) ? 'read': 'skip'
+  var score = classifier.getClassifications(docs[i].feedItem.summary.toLowerCase())
+  var tag = score[0].value > score[1].value*10000 ? 'read': 'skip'
+  //svmTrainData.push([tag==='read'? 1 : -1 ])
+  svmTrainData.push([docs[i].interesting ? 1 : 0])
+  svmLabels.push(docs[i].interesting ? 1 : 0)
 }
-console.log('svm train data')
-console.log(JSON.stringify(svmTrainData))
-console.log('svm training labels')
+console.log('svm training labels (correct answers')
 console.log(JSON.stringify(svmLabels))
+console.log('svm train data (classifying already classified data)')
+console.log(JSON.stringify(svmTrainData))
 
 //classifierTitle.train()
-svm.train(svmTrainData, svmLabels, {C: 1e5, kernel: 'rbf', rbfsigma: 0.5})
+svm.train(svmTrainData, svmLabels, {C: 1.0, numpasses: 100, tol: 1e-5, maxiter: 1e6})
 console.log('testing')
 
 
@@ -118,29 +112,25 @@ console.log('testing')
 var testData = []
 var testAns = []
 for(var i=0;i<testSize;i++) {
-  var hostname = url.parse(docs[i].feedItem.link).hostname
-  var hist = linkHistory[hostname]
-  var ratio = hist && hist.clicks / hist.total
+  //var hostname = url.parse(docs[i].feedItem.link).hostname
+  //var hist = linkHistory[hostname]
+  //var ratio = hist && hist.clicks / hist.total
   
   // if a link doesn't have a at least 20 entries, ignore the raio (set to 50%)
-  if(!hist || hist.total < 20) ratio = 0.5
-  var scores = classifier.getClassifications(docs[i].feedItem.summary.toLowerCase())
-  if(scores[0].label === 'read'){
-    var readBayes = scores[0].value, skipBayes = scores[1].value
-  } else {
-    var readBayes = scores[1].value, skipBayes = scores[0].value
-  }
-  //testData.push([readBayes, ratio])
-  //testData.push([readBayes])
-  var tag = classifier.classify(docs[i].feedItem.summary.toLocaleLowerCase())
-  testData.push([tag==='read'? 1 : -1 ])
-  
+  //if(!hist || hist.total < 20) ratio = 0.5
+
+  //var tag = classifier.classify(docs[i].feedItem.summary.toLowerCase())
+  var score = classifier.getClassifications(docs[i].feedItem.summary.toLowerCase())
+  var tag = score[0].value > score[1].value*10000 ? 'read': 'skip'
+  //testData.push([tag==='read'? 1 : -1 ])
+  testData.push(docs[i].interesting ? 1 : -1)
   testAns.push(docs[i].interesting ? 1 : -1)
 }
 console.log('This is the result of the bayes classifier')
 console.log(JSON.stringify(testData))
 console.log('These are the correct labeled answers')
 console.log(JSON.stringify(testAns))
+
 var answers = svm.predict(testData)
 console.log('This is what the svm spits out')
 console.log(JSON.stringify(answers))
