@@ -51,7 +51,6 @@ var docs = JSON.parse(fs.readFileSync('save.json'))
 
 var classifier1 = new natural.BayesClassifier()
 var classifier2 = new natural.BayesClassifier()
-var classifierSum = new natural.LogisticRegressionClassifier()
 var testSize = 200
 var sampleSize = docs.length - testSize //- 3510
 var linkHistory = {}
@@ -80,7 +79,7 @@ console.log('testing')
 
 var testData = [] // guessed results
 var testAns = [] // expected results
-for(var i=testSize;i<sampleSize+testSize;i++) {
+for(var i=0;i<testSize;i++) {
   //var hostname = url.parse(docs[i].feedItem.link).hostname
   //var hist = linkHistory[hostname]
   //var ratio = hist && hist.clicks / hist.total
@@ -91,20 +90,7 @@ for(var i=testSize;i<sampleSize+testSize;i++) {
   var tag1 = classifier1.classify(docs[i].feedItem.summary.toLowerCase())
   var tag2 = classifier2.classify(docs[i].feedItem.title.toLowerCase())
   
-  classifierSum.addDocument([tag1, tag2], docs[i].interesting)
-  //testData.push([tag==='read'? 1 : -1 ])
-  //testData.push(tag === 'true' ? true : false)
-  //testAns.push(docs[i].interesting)
-}
-
-classifierSum.train()
-
-for(var i=0;i<testSize;i++) {
-  var tag1 = classifier1.classify(docs[i].feedItem.summary.toLowerCase())
-  var tag2 = classifier2.classify(docs[i].feedItem.title.toLowerCase())
-  var tag = classifierSum.classify([tag1, tag2])
-  
-  testData.push(tag === 'true' ? true : false)
+  testData.push(tag1 === 'true' || tag2==='true' ? true : false)
   testAns.push(docs[i].interesting)  
 }
 
