@@ -11,10 +11,13 @@
     "password-hash": "~1.2.1",
     "jsdom": "~0.6.5",
     "q": "~0.9.4",
-    "mongojs": "~0.7.5",
+    "mongojs": "~0.7.17",
     "request": "~2.21.0",
     "polish": "~0.2.2",
-    "xml2json": "~0.3.2"
+    "xml2json": "~0.3.2",
+    "natural": "~0.1.21",
+    "svm": "~0.1.1",
+    "bayes": "0.0.2"
   },
   "scripts": {
     "start": "node app.js",
