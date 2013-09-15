@@ -149,25 +149,31 @@ var SubscriptionController = {
                   err: 'error saving'
               })
           }
-          
-          // update classifier
-          db.feeditem.findOne({_id: feedItemId}, function(err, feedItem){
-              if(err || !feedItem) return res.json({err: 'error finding feedItem'})
-                  // train history based on hostname
-              var hostname = url.parse(feedItem.link).hostname.replace(/\./g,'_')
-              // bayes text classifiers
-              classifier1.addDocument(feedItem.summary.toLowerCase(), true)
-              classifier2.addDocument(feedItem.title.toLowerCase(), true)
-              classifier3.addDocument([hostname], true)
+          if(req.session.sub === '51bd4e7fc5840f1f7d000001') {
+            // update classifier
+            db.feeditem.findOne({_id: feedItemId}, function(err, feedItem){
+                if(err || !feedItem) return res.json({err: 'error finding feedItem'})
+                    // train history based on hostname
+                var hostname = url.parse(feedItem.link).hostname.replace(/\./g,'_')
+                // bayes text classifiers
+                classifier1.addDocument(feedItem.summary.toLowerCase(), true)
+                classifier2.addDocument(feedItem.title.toLowerCase(), true)
+                classifier3.addDocument([hostname], true)
+                
+                classifier1.train()
+                classifier2.train()
+                classifier3.train()
               
-              classifier1.train()
-              classifier2.train()
-              classifier3.train()
-            
-              return res.json({
+                return res.json({
+                    success: true
+                })
+            })
+          }
+          else {
+            return res.json({
                   success: true
               })
-          })
+          }
         })
     },
     unsub: function (req, res) {
