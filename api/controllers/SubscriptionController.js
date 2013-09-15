@@ -29,7 +29,14 @@ var SubscriptionController = {
         return res.redirect('/subscription/' + sub)
     },
     classify: function(req, res) {
-      var feedItemId = req.param('feedItemId')
+      var feedItemId;
+      try {
+          feedItemId = new ObjectId(req.param('feedItemId'))
+      } catch (e) {
+          return res.json({
+              err: 'bad feedItemId'
+          })
+      }
       db.feeditem.findOne({_id: feedItemId}, function(err, feedItem){
         if(err || !feedItem) return res.json({err: 'error finding feedItem'})
         
