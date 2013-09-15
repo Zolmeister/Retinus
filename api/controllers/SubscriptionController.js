@@ -8,11 +8,43 @@ var fs = require('fs');
 var jquery = fs.readFileSync("./jquery.js").toString();
 var feedutil = require('../../feedutil')
 var request = require('request');
+var natural = require('natural');
+var url = require('url');
+
+
+// HACK
+var mongojs = require('mongojs'),
+db = mongojs('retinus', ['feeditem', 'ml'])
+
+var classifier1, classifier2, classifier3;
+db.ml.findOne({sub: '51bd4e7fc5840f1f7d000001'}, function(err, zolmeisterML){
+  classifier1 = natural.BayesClassifier.restore(zolmeisterML.summaryClassifier)
+  classifier2 = natural.BayesClassifier.restore(zolmeisterML.titleClassifier)
+  classifier3 = natural.BayesClassifier.restore(zolmeisterML.linkClassifier)
+})
 
 var SubscriptionController = {
     index: function (req, res) {
         var sub = req.session.sub
         return res.redirect('/subscription/' + sub)
+    },
+    classify: function(req, res) {
+      var feedItemId = req.param('feedItemId')
+      db.feeditem.findOne({_id: feedItemId}, function(err, feedItem){
+        if(err || !feedItem) return res.json({err: 'error finding feedItem'})
+        
+        // classify
+        var hostname = url.parse(feedItem.link).hostname.replace(/\./g,'_')
+  
+        var tag1 = classifier1.classify(feedItem.summary.toLowerCase())
+        var tag2 = classifier2.classify(feedItem.title.toLowerCase())
+        var tag3 = classifier3.classify(hostname)
+        
+        var final = (tag1 === 'true' && tag3 === 'true' || tag2 === 'true'  ? true : false)
+        return res.json({
+          interesting: final
+        })
+      })
     },
     feeds: function (req, res) {
         var sub = req.session.sub
@@ -104,20 +136,38 @@ var SubscriptionController = {
                 err: 'bad feedItemId'
             })
         }
+      
+      
 
         History.update({
             feedItemId: feedItemId
         }, {
             interesting: true
         }, function (err, hist) {
-            if (err) {
-                return res.json({
-                    err: 'error saving'
-                })
-            }
-            return res.json({
-                success: true
-            })
+          if (err) {
+              return res.json({
+                  err: 'error saving'
+              })
+          }
+          
+          // update classifier
+          db.feeditem.findOne({_id: feedItemId}, function(err, feedItem){
+              if(err || !feedItem) return res.json({err: 'error finding feedItem'})
+                  // train history based on hostname
+              var hostname = url.parse(feedItem.link).hostname.replace(/\./g,'_')
+              // bayes text classifiers
+              classifier1.addDocument(feedItem.summary.toLowerCase(), true)
+              classifier2.addDocument(feedItem.title.toLowerCase(), true)
+              classifier3.addDocument([hostname], true)
+              
+              classifier1.train()
+              classifier2.train()
+              classifier3.train()
+            
+              return res.json({
+                  success: true
+              })
+          })
         })
     },
     unsub: function (req, res) {
