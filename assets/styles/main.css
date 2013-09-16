@@ -145,13 +145,7 @@ footer {
     width: 4px;
     height: 100%;
     margin-left: -25px;
-}
-.unread-item:before {
-    content: '';
-    position: absolute;
-    width: 4px;
-    height: 100%;
-    margin-left: -25px;
+    border-radius: 1px;
 }
 .item-link {
     font-family: Arial, sans-serif;
@@ -160,7 +154,27 @@ footer {
     padding-bottom: 5px;
     font-size: 18px;
 }
-
+.item-link:before {
+    content: '';
+    position: absolute;
+    width: 5px;
+    height: 20px;
+    border-radius: 1px;
+    margin-left: -15px;
+    margin-top: 0px;
+}
+.item-link:before {
+    background: rgba(200,100,100,0.2);
+}
+.item-link.interesting:before {
+    background: rgba(100,200,100,0.2);
+}
+.selected .item-link:before {
+    background: rgba(200,100,100,0.4) !important;
+}
+.selected .item-link.interesting:before {
+    background: rgba(100,200,100,0.4) !important;
+}
 /* login */
 #login {
     max-width: 900px;
