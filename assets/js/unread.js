@@ -46,15 +46,26 @@ UnreadCollection = Backbone.Collection.extend({
                     promises.push($.Deferred(function (defer) {
                         $.getJSON('/feeditem/' + unread.get('feedItemId'), (function (unread) {
                             return function (res) {
-                                if (res.err) {
+                              if (res.err) {
                                     return vent.trigger('Error:err', res.err)
                                 }
+                              
+                              $.getJSON('/subscription/classify', {feedItemId: unread.get('feedItemId') }, function(classification){
+                                if (classification.err) {
+                                    return vent.trigger('Error:err', res.err)
+                                }
+                                
                                 for (var key in res) {
                                     unread.set(key, res[key])
                                 }
                                 unread.set('loaded', true)
                                 unread.set('visible', true)
+                                unread.set('interesting', classification.interesting)
                                 defer.resolve()
+                              })
+                              
+                                
+                                
                             }
                         })(unread))
                     }).promise())

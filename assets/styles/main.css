@@ -146,6 +146,13 @@ footer {
     height: 100%;
     margin-left: -25px;
 }
+.unread-item:before {
+    content: '';
+    position: absolute;
+    width: 4px;
+    height: 100%;
+    margin-left: -25px;
+}
 .item-link {
     font-family: Arial, sans-serif;
     font-weight: bold;

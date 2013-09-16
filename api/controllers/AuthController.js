@@ -85,7 +85,6 @@ var AuthController = {
                 err: 'email or password not specified'
             })
         }
-
         User.find({
             email: email
         }).then(function (user) {

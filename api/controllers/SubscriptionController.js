@@ -43,8 +43,8 @@ var SubscriptionController = {
         // classify
         var hostname = url.parse(feedItem.link).hostname.replace(/\./g,'_')
   
-        var tag1 = classifier1.classify(feedItem.summary.toLowerCase())
-        var tag2 = classifier2.classify(feedItem.title.toLowerCase())
+        var tag1 = feedItem.summary && classifier1.classify(feedItem.summary.toLowerCase()) || 'false'
+        var tag2 = feedItem.title && classifier2.classify(feedItem.title.toLowerCase()) || 'false'
         var tag3 = classifier3.classify(hostname)
         
         var final = (tag1 === 'true' && tag3 === 'true' || tag2 === 'true'  ? true : false)
@@ -163,8 +163,8 @@ var SubscriptionController = {
                     // train history based on hostname
                 var hostname = url.parse(feedItem.link).hostname.replace(/\./g,'_')
                 // bayes text classifiers
-                classifier1.addDocument(feedItem.summary.toLowerCase(), true)
-                classifier2.addDocument(feedItem.title.toLowerCase(), true)
+                feedItem.summary && classifier1.addDocument(feedItem.summary.toLowerCase(), true)
+                feedItem.title && classifier2.addDocument(feedItem.title.toLowerCase(), true)
                 classifier3.addDocument([hostname], true)
                 
                 classifier1.train()
