@@ -41,16 +41,22 @@ var SubscriptionController = {
         if(err || !feedItem) return res.json({err: 'error finding feedItem'})
         
         // classify
-        var hostname = url.parse(feedItem.link).hostname.replace(/\./g,'_')
-  
-        var tag1 = feedItem.summary && classifier1.classify(feedItem.summary.toLowerCase()) || 'false'
-        var tag2 = feedItem.title && classifier2.classify(feedItem.title.toLowerCase()) || 'false'
-        var tag3 = classifier3.classify(hostname)
-        
-        var final = (tag1 === 'true' && tag3 === 'true' || tag2 === 'true'  ? true : false)
-        return res.json({
-          interesting: final
-        })
+          try {
+          var hostname = url.parse(feedItem.link).hostname.replace(/\./g,'_')
+    
+          var tag1 = feedItem.summary && classifier1.classify(feedItem.summary.toLowerCase()) || 'false'
+          var tag2 = feedItem.title && classifier2.classify(feedItem.title.toLowerCase()) || 'false'
+          var tag3 = classifier3.classify(hostname)
+          
+          var final = (tag1 === 'true' && tag3 === 'true' || tag2 === 'true'  ? true : false)
+          return res.json({
+            interesting: final
+          })
+         catch(e) {
+          return res.json({
+            interesting: false
+          })
+         }
       })
     },
     feeds: function (req, res) {
