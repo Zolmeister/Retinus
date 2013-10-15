@@ -68,9 +68,9 @@ function extractFeedContent(url) {
             var channel = result.rss.channel
             var channelItems = channel.item
             channelItems.forEach(function (item) {
-                var title = item.title
-                var link = item.link
-                var description = item.description
+                var title = ''+item.title
+                var link = ''+item.link
+                var description = ''+item.description
                 if (!title || !link) return
                 var comp = {
                     title: title,
@@ -84,7 +84,7 @@ function extractFeedContent(url) {
             entries.forEach(function (item) {
                 var title = item.title
                 var description = item.content || item.summary
-                var link = item.link && item.link.href
+                var link = item.link && ''+item.link.href
 
                 // to accomodate http://fasthorizon.blogspot.com/feeds/posts/default
                 if (typeof title === 'object' && title.$t) title = title.$t
@@ -109,9 +109,9 @@ function extractFeedContent(url) {
         } else if (type === 'rdf') {
             var items = (result.rdf || result['rdf:RDF']).item
             items.forEach(function (item) {
-                var title = item.title
-                var link = item.link
-                var description = item.description
+                var title = ''+item.title
+                var link = ''+item.link
+                var description = ''+item.description
                 
                 if (typeof title !== 'string' || typeof link !== 'string') {
                     throw new Error('failed to extract' + JSON.stringify(item, null, 2))

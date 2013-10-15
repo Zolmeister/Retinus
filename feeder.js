@@ -39,7 +39,7 @@ function updateFeed(feed) {
     }, function (err, feedItems) {
         if (err) return console.log('error updating feed', err)
         var titles = feedItems.map(function (item) {
-            return item.title
+            return ''+item.title
         })
 
         feedutil.extractFeedContent(feed.feedurl).then(function (items) {
